@@ -25,3 +25,6 @@ env\Scripts\activate
 pip install -r requirements.txt
 python3 app.py
 ```
+
+# License
+MIT License
