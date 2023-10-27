@@ -1,4 +1,4 @@
-# LitCit
+# HeatBeamX
 Simulation and Visualisation of Laser-Induced Temperature Calculation In Tissue.
 
 # Requirements
