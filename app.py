@@ -1,4 +1,8 @@
 from dash import Dash, html, dcc, Input, Output, callback
+import json
+
+with open("assets/tissues.json") as tissues_json:
+    tissues = json.load(tissues_json)
 
 app = Dash(__name__)
 
@@ -12,7 +16,10 @@ app.layout = html.Div([
                         dcc.Tabs(id ="setting_tabs",
                                 children=[
                                     dcc.Tab(
-                                        label="Tissue"
+                                        label="Tissue",
+                                        children =[
+                                            dcc.Dropdown(list(tissues.keys()))
+                                        ]
                                     ),
                                     dcc.Tab(
                                         label="ROI",
