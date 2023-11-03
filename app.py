@@ -18,7 +18,45 @@ app.layout = html.Div([
                                     dcc.Tab(
                                         label="Tissue",
                                         children =[
-                                            dcc.Dropdown(list(tissues.keys()))
+                                            dcc.Dropdown(list(tissues.keys()),id="tissue_select"),
+                                            html.Div(id="optical_parameters",
+                                                    children=[
+                                                        dcc.Input(id="wave_length", type="number", value=850),
+                                                        html.Div(id="native",
+                                                                    children=[
+                                                                        dcc.Input(id="native_refr_index",type="number", value=1.36),
+                                                                        dcc.Input(id="native_absorption",type="number", value=0.098),
+                                                                        dcc.Input(id="native_scattering",type="number", value=20.2),
+                                                                        dcc.Input(id="native_g_factor",type="number", value=0.949)
+                                                                    ]),
+                                                        html.Div(id="coagulated",
+                                                                    children=[
+                                                                        dcc.Input(id="coag_refr_index",type="number", value = 1.36),
+                                                                        dcc.Input(id="coag_absorption",type="number", value = 0.071),
+                                                                        dcc.Input(id="coag_scattering",type="number", value=23.9),
+                                                                        dcc.Input(id="coag_g_factor",type="number", value=0.882)
+                                                                    ])
+                                                    ]
+                                            ),
+                                            html.Br(),
+                                            html.Div(id="thermal_parameters",
+                                                    children=[
+                                                        dcc.Input(id="init_temp",type="number", value=35),
+                                                        dcc.Input(id="blood_perf",type="number", value=0.5),
+                                                        dcc.Input(id="water_cont", type="number", value=69),
+                                                        dcc.Input(id="heat_conduct",type="number",value=0.0045),
+                                                        dcc.Input(id="heat_cap",type="number",value=3.3197),
+                                                        dcc.Input(id="density",type="number",value=1.093)
+                                                    ]
+                                            ),
+                                            html.Br(),
+                                            html.Div(id="damage_parameters",
+                                                    children=[
+                                                        dcc.Input(id="dmg_threshhold",type="number",value=0.6),
+                                                        dcc.Input(id="activation_energy",type="number",value=670000),
+                                                        dcc.Input(id="rate_param",type="number",value=9.4E+104, step=0.01E+104)
+                                                    ]
+                                            )
                                         ]
                                     ),
                                     dcc.Tab(
