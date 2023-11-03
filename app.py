@@ -18,7 +18,8 @@ app.layout = html.Div([
                                     dcc.Tab(
                                         label="Tissue",
                                         children =[
-                                            dcc.Dropdown(list(tissues.keys()),id="tissue_select"),
+                                            dcc.Dropdown(list(tissues.keys()),value="Liver",id="tissue_select"),
+                                            html.Div(id="selected"),
                                             html.Div(id="optical_parameters",
                                                     children=[
                                                         dcc.Input(id="wave_length", type="number", value=850),
@@ -52,7 +53,7 @@ app.layout = html.Div([
                                             html.Br(),
                                             html.Div(id="damage_parameters",
                                                     children=[
-                                                        dcc.Input(id="dmg_threshhold",type="number",value=0.6),
+                                                        dcc.Input(id="dmg_threshold",type="number",value=0.6),
                                                         dcc.Input(id="activation_energy",type="number",value=670000),
                                                         dcc.Input(id="rate_param",type="number",value=9.4E+104, step=0.01E+104)
                                                     ]
@@ -107,6 +108,21 @@ app.layout = html.Div([
 def calculate_dim(voxel_dim, no_of_voxel_x, no_of_voxel_y, no_of_voxel_z):
     return round(voxel_dim*no_of_voxel_x,3), round(voxel_dim*no_of_voxel_y,3), round(voxel_dim*no_of_voxel_z,3)
 
+@callback(
+    [Output("wave_length","value"),
+    [Output("native_refr_index","value"),Output("native_absorption","value"),Output("native_scattering","value"),Output("native_g_factor","value")],
+    [Output("coag_refr_index","value"),Output("coag_absorption","value"),Output("coag_scattering","value"),Output("coag_g_factor","value")],
+    [Output("init_temp","value"),Output("blood_perf","value"),Output("water_cont","value"),Output("heat_conduct","value"),Output("heat_cap","value"),Output("density","value")],
+    [Output("dmg_threshold","value"),Output("activation_energy","value"),Output("rate_param","value")]],
+    Input("tissue_select","value")
+)
+def update_tissue(tissue):
+    wave_param = tissues[tissue]["Optical parameters"]["Wave length"]
+    native = list(tissues[tissue]["Optical parameters"]["Native"].values())
+    coagulated = list(tissues[tissue]["Optical parameters"]["Coagulated"].values())
+    thermal = list(tissues[tissue]["Thermal parameters"].values())
+    damage = list(tissues[tissue]["Damage parameters"].values())
+    return wave_param,native,coagulated,thermal,damage
 
 if __name__ == '__main__':
     app.run(debug=True)
