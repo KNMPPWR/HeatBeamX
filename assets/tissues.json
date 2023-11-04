@@ -1,28 +1,25 @@
  {
     "Liver":{
         "Name": "Liver",
-        "Optical parameters": [
+        "Optical parameters":
             {
                 "Wave length": 850,
-                "Native": [
+                "Native":
                     {
                         "Refr.index": 1.36,
                         "Absorption":0.098,
                         "Scattering":20.2,
                         "g-Factor":0.949
-                    }
-                ],
-                "Coagulated": [
+                    },
+                "Coagulated":
                     {
                         "Refr.index": 1.36,
                         "Absorption":0.071,
                         "Scattering":23.9,
                         "g-Factor":0.882
                     }
-                ]
-            }
-        ],
-        "Thermal parameters": [
+            },
+        "Thermal parameters":
             {
                 "Initial temperature": 35,
                 "Blood perfusion": 0.5,
@@ -30,40 +27,35 @@
                 "Heat conductivity": 0.0045,
                 "Heat capacity": 3.3197,
                 "Density": 1.093
-            }
-        ],
-        "Damage parameters": [
+            },
+        "Damage parameters":
             {
                 "Damage treshold": 0.6,
                 "Activation energy": 670000,
                 "Rate parameter": 9.4E+104
             }
-        ]
     },
     "Brain":{
         "Name": "Brain",
-        "Optical parameters": [
+        "Optical parameters": 
             {
                 "Wave length": 850,
-                "Native": [
+                "Native":
                     {
                         "Refr.index": 1.36,
                         "Absorption":0.08,
                         "Scattering":14,
                         "g-Factor":0.95
-                    }
-                ],
-                "Coagulated": [
+                    },
+                "Coagulated":
                     {
                         "Refr.index": 1.36,
                         "Absorption":0.09,
                         "Scattering":17,
                         "g-Factor":0.94
                     }
-                ]
-            }
-        ],
-        "Thermal parameters": [
+            },
+        "Thermal parameters":
             {
                 "Initial temperature": 35,
                 "Blood perfusion": 0.5,
@@ -71,15 +63,13 @@
                 "Heat conductivity": 0.0048,
                 "Heat capacity": 3.4882,
                 "Density": 1.075
-            }
-        ],
-        "Damage parameters": [
+            },
+        "Damage parameters":
             {
                 "Damage treshold": 0.6,
                 "Activation energy": 670000,
                 "Rate parameter": 9.4E+104
             }
-        ]
     }
 }
 
