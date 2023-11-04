@@ -25,37 +25,37 @@ app.layout = html.Div([
                                                         dcc.Input(id="wave_length", type="number", value=850),
                                                         html.Div(id="native",
                                                                     children=[
-                                                                        dcc.Input(id="native_refr_index",type="number", value=1.36),
-                                                                        dcc.Input(id="native_absorption",type="number", value=0.098),
-                                                                        dcc.Input(id="native_scattering",type="number", value=20.2),
-                                                                        dcc.Input(id="native_g_factor",type="number", value=0.949)
+                                                                        dcc.Input(id="native_refr_index",type="number",min=0.01,max=2,step=0.01),
+                                                                        dcc.Input(id="native_absorption",type="number",min=0.001,max=1,step=0.001),
+                                                                        dcc.Input(id="native_scattering",type="number",min=1,max=40,step=0.1),
+                                                                        dcc.Input(id="native_g_factor",type="number",min=0.001,max=2,step=0.001)
                                                                     ]),
                                                         html.Div(id="coagulated",
                                                                     children=[
-                                                                        dcc.Input(id="coag_refr_index",type="number", value = 1.36),
-                                                                        dcc.Input(id="coag_absorption",type="number", value = 0.071),
-                                                                        dcc.Input(id="coag_scattering",type="number", value=23.9),
-                                                                        dcc.Input(id="coag_g_factor",type="number", value=0.882)
+                                                                        dcc.Input(id="coag_refr_index",type="number", min=0.01,max=2,step=0.01),
+                                                                        dcc.Input(id="coag_absorption",type="number", min=0.001,max=1,step=0.001),
+                                                                        dcc.Input(id="coag_scattering",type="number", min=1,max=40,step=0.1),
+                                                                        dcc.Input(id="coag_g_factor",type="number", min=0.001,max=2,step=0.001)
                                                                     ])
                                                     ]
                                             ),
                                             html.Br(),
                                             html.Div(id="thermal_parameters",
                                                     children=[
-                                                        dcc.Input(id="init_temp",type="number", value=35),
-                                                        dcc.Input(id="blood_perf",type="number", value=0.5),
-                                                        dcc.Input(id="water_cont", type="number", value=69),
-                                                        dcc.Input(id="heat_conduct",type="number",value=0.0045),
-                                                        dcc.Input(id="heat_cap",type="number",value=3.3197),
-                                                        dcc.Input(id="density",type="number",value=1.093)
+                                                        dcc.Input(id="init_temp",type="number",min=30,max=40,step=0.1),
+                                                        dcc.Input(id="blood_perf",type="number",min=0.01,max=1,step=0.01),
+                                                        dcc.Input(id="water_cont", type="number",min=50,max=100,step=0.1),
+                                                        dcc.Input(id="heat_conduct",type="number",min=0.0001,max=0.01,step=0.0001),
+                                                        dcc.Input(id="heat_cap",type="number",min=3,max=4,step=0.0001),
+                                                        dcc.Input(id="density",type="number",min=0.9,max=1.5,step=0.001)
                                                     ]
                                             ),
                                             html.Br(),
                                             html.Div(id="damage_parameters",
                                                     children=[
-                                                        dcc.Input(id="dmg_threshold",type="number",value=0.6),
-                                                        dcc.Input(id="activation_energy",type="number",value=670000),
-                                                        dcc.Input(id="rate_param",type="number",value=9.4E+104, step=0.01E+104)
+                                                        dcc.Input(id="dmg_threshold",type="number",min=0.1,max=1,step=0.01),
+                                                        dcc.Input(id="activation_energy",type="number",min=600000,max=750000,step=10000),
+                                                        dcc.Input(id="rate_param",type="number",min=8E+104,max=10E+104,step=0.01E+104, style={"width":100})
                                                     ]
                                             )
                                         ]
