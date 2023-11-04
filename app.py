@@ -1,4 +1,4 @@
-from dash import Dash, html, dcc, Input, Output, callback
+from dash import Dash, html, dcc, Input, Output, ctx, callback
 import json
 
 with open("assets/tissues.json") as tissues_json:
@@ -89,7 +89,25 @@ app.layout = html.Div([
                                         ]
                                     ),
                                     dcc.Tab(
-                                        label="Laser"
+                                        label="Laser",
+                                        children=[                                       
+                                            html.Label("Source number: ", htmlFor="courent_source_number"),
+                                            dcc.Dropdown(value=1, id="courent_source_number"),
+                                            html.Div(id="source_position_parameters",
+                                                    children=[                                            
+                                                        html.Label("Position of aplicator center (without peak): ", htmlFor="source_position_parameters"),
+                                                        html.Br(),
+                                                        html.Label("X (mm): ", htmlFor="source_x_coordinate"),
+                                                        dcc.Input(id="source_x_coordinate", type="number", min=0, step=0.001),
+                                                        html.Label("Y (mm): ", htmlFor="source_y_coordinate"),
+                                                        dcc.Input(id="source_y_coordinate", type="number", min=0, step=0.001),
+                                                        html.Label("Z (mm): ", htmlFor="source_z_coordinate"),
+                                                        dcc.Input(id="source_z_coordinate", type="number", min=0, step=0.001)
+                                                    ]),
+                                            html.Button("Save", id="save_source"),
+                                            html.Button("Add source", id="add_source", n_clicks=1),
+                                            html.Button("Remove source", id="remove_source", n_clicks=0)
+                                        ]
                                     )])
                 ]),
                 dcc.Tab(id="simulation",label="Simulation"),
@@ -123,6 +141,52 @@ def update_tissue(tissue):
     thermal = list(tissues[tissue]["Thermal parameters"].values())
     damage = list(tissues[tissue]["Damage parameters"].values())
     return wave_param,native,coagulated,thermal,damage
+
+
+sources_coordinates_list = []
+
+@callback(
+    Output("courent_source_number", "options"),
+    Input("courent_source_number", "value"),
+    Input("add_source", "n_clicks"),
+    Input("remove_source", "n_clicks")
+)
+def update_number_of_sources(courent_source_number, add_clicks, remove_clicks):
+    number_of_sources = add_clicks - remove_clicks
+
+    if len(sources_coordinates_list) < number_of_sources:
+        sources_coordinates_list.append([])
+
+    else:
+        sources_coordinates_list.pop(courent_source_number - 1)
+
+    return [i+1 for i in range(number_of_sources)]
+
+@callback(
+    [Output("source_x_coordinate", "max"), Output("source_y_coordinate", "max"), Output("source_z_coordinate", "max")],
+    Input("dim_x", "value"),
+    Input("dim_y", "value"),
+    Input("dim_z", "value")
+)
+def update_source_coordinate_max(dim_x, dim_y, dim_z):
+    return dim_x, dim_y, dim_z
+
+@callback(
+    [Output("source_x_coordinate", "value"), Output("source_y_coordinate", "value"), Output("source_z_coordinate", "value")],
+    Input("courent_source_number", "value"),
+    Input("source_x_coordinate", "value"),
+    Input("source_y_coordinate", "value"),
+    Input("source_z_coordinate", "value"),
+    Input("save_source", "n_clicks")
+)
+def update_source_coordinate_values(courent_source_number, source_x_coordinate, source_y_coordinate, source_z_coordinate, save_button):
+    if ctx.triggered_id == "save_source":
+        sources_coordinates_list[courent_source_number - 1] = [source_x_coordinate, source_y_coordinate, source_z_coordinate]
+
+        return sources_coordinates_list[courent_source_number - 1]
+
+    if sources_coordinates_list[courent_source_number - 1]:
+        return sources_coordinates_list[courent_source_number - 1]
 
 if __name__ == '__main__':
     app.run(debug=True)
