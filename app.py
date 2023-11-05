@@ -90,23 +90,43 @@ app.layout = html.Div([
                                     ),
                                     dcc.Tab(
                                         label="Laser",
-                                        children=[      
-                                            html.Label("Number of sources: ", htmlFor="number_of_sources"),
-                                            dcc.Slider(min=1, step=1, max=3, value=1, id="number_of_sources"),                                 
-                                            html.Label("Source number: ", htmlFor="courent_source_number"),
-                                            dcc.Dropdown(value=1, id="courent_source_number"),
-                                            html.Div(id="source_position_parameters",
+                                        children=[   
+                                            html.Label("Position of aplicator center (without peak): ", htmlFor="source_position_parameters"),
+                                            html.Div(id="primary_source_position_parameters", style={"display":"block"},
                                                     children=[                                            
-                                                        html.Label("Position of aplicator center (without peak): ", htmlFor="source_position_parameters"),
+                                                        html.Label("Primary source: ", htmlFor="primary_source"), 
                                                         html.Br(),
-                                                        html.Label("X (mm): ", htmlFor="source_x_coordinate"),
-                                                        dcc.Input(id="source_x_coordinate", type="number", min=0, step=0.001, value=0),
-                                                        html.Label("Y (mm): ", htmlFor="source_y_coordinate"),
-                                                        dcc.Input(id="source_y_coordinate", type="number", min=0, step=0.001, value=0),
-                                                        html.Label("Z (mm): ", htmlFor="source_z_coordinate"),
-                                                        dcc.Input(id="source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                        html.Label("X (mm): ", htmlFor="primary_source_x_coordinate"),
+                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Y (mm): ", htmlFor="primary_source_y_coordinate"),
+                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Z (mm): ", htmlFor="primary_source_z_coordinate"),
+                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001, value=0)
                                                     ]),
-                                            html.Button("Save", id="save_source"),
+                                            html.Div(id="secondary_source_position_parameters", style={"display":"none"},
+                                                    children=[                                            
+                                                        html.Label("Secondary source: ", htmlFor="secondary_source"),
+                                                        html.Br(),
+                                                        html.Label("X (mm): ", htmlFor="secondary_source_x_coordinate"),
+                                                        dcc.Input(id="secondary_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Y (mm): ", htmlFor="secondary_source_y_coordinate"),
+                                                        dcc.Input(id="secondary_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Z (mm): ", htmlFor="secondary_source_z_coordinate"),
+                                                        dcc.Input(id="secondary_source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                    ]),
+                                            html.Div(id="third_source_position_parameters", style={"display":"none"},
+                                                    children=[                                            
+                                                        html.Label("Third source: ", htmlFor="third_source"),
+                                                        html.Br(),
+                                                        html.Label("X (mm): ", htmlFor="third_source_x_coordinate"),
+                                                        dcc.Input(id="third_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Y (mm): ", htmlFor="third_source_y_coordinate"),
+                                                        dcc.Input(id="third_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Z (mm): ", htmlFor="third_source_z_coordinate"),
+                                                        dcc.Input(id="third_source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                    ]),
+                                            html.Button("Add source", id="add_source", n_clicks=0, disabled=False),
+                                            html.Button("Remove source", id="remove_source", n_clicks=0, disabled=True),
                                             dcc.ConfirmDialog(id="sources_with_same_coordinates", message="Two or more sources have the same coordinates as this one")
                                         ]
                                     )])
@@ -147,53 +167,97 @@ def update_tissue(tissue):
 sources_coordinates_list = [[0,0,0]]
 
 @callback(
-    Output("courent_source_number", "options"),
-    Input("number_of_sources", "value")
+    Output("secondary_source_position_parameters", "style"),
+    Output("third_source_position_parameters", "style"),
+    Input("add_source", "n_clicks"),
+    Input("remove_source", "n_clicks")
 )
-def update_number_of_sources(number_of_sources):
-    if ctx.triggered_id == "number_of_sources":
-        if len(sources_coordinates_list) < number_of_sources:
-            sources_coordinates_list.append([0,0,0])
+def update_number_of_sources(add_source, remove_source):
+    if ctx.triggered_id == "add_source":
+        sources_coordinates_list.append([0,0,0])
 
-        else:
-            sources_coordinates_list.pop()
+    if ctx.triggered_id == "remove_source":
+        sources_coordinates_list.pop()
+    
+    number_of_sources = len(sources_coordinates_list)
 
-    return [i+1 for i in range(len(sources_coordinates_list))]
+    if number_of_sources == 1:
+        return {"display":"none"}, {"display":"none"}
+    
+    if number_of_sources == 2:
+        return {"display":"block"}, {"display":"none"}
+
+    if number_of_sources == 3:
+        return {"display":"block"}, {"display":"block"}
 
 @callback(
-    [Output("source_x_coordinate", "max"), Output("source_y_coordinate", "max"), Output("source_z_coordinate", "max")],
+    Output("add_source", "disabled"),
+    Output("remove_source", "disabled"),
+    Input("add_source", "n_clicks"),
+    Input("remove_source", "n_clicks")
+)
+def disable_source_buttons(add_source, remove_source):
+    if len(sources_coordinates_list) == 1:
+        return False, True
+    
+    if len(sources_coordinates_list) == 2:
+        return False, False
+    
+    if len(sources_coordinates_list) == 3:
+        return True, False
+
+@callback(
+    [Output("primary_source_x_coordinate", "max"), Output("primary_source_y_coordinate", "max"), Output("primary_source_z_coordinate", "max")],
+    [Output("secondary_source_x_coordinate", "max"), Output("secondary_source_y_coordinate", "max"), Output("secondary_source_z_coordinate", "max")],
+    [Output("third_source_x_coordinate", "max"), Output("third_source_y_coordinate", "max"), Output("third_source_z_coordinate", "max")],
     Input("dim_x", "value"),
     Input("dim_y", "value"),
     Input("dim_z", "value")
 )
 def update_source_coordinate_max(dim_x, dim_y, dim_z):
-    return dim_x, dim_y, dim_z
+    return 3*[dim_x, dim_y, dim_z]
 
 @callback(
-    [Output("source_x_coordinate", "value"), Output("source_y_coordinate", "value"), Output("source_z_coordinate", "value")],
-    Input("courent_source_number", "value"),
-    Input("source_x_coordinate", "value"),
-    Input("source_y_coordinate", "value"),
-    Input("source_z_coordinate", "value"),
-    Input("save_source", "n_clicks")
+    [[Output("primary_source_x_coordinate", "value"), Output("primary_source_y_coordinate", "value"), Output("primary_source_z_coordinate", "value")],
+    [Output("secondary_source_x_coordinate", "value"), Output("secondary_source_y_coordinate", "value"), Output("secondary_source_z_coordinate", "value")],
+    [Output("third_source_x_coordinate", "value"), Output("third_source_y_coordinate", "value"), Output("third_source_z_coordinate", "value")]],
+    [[Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
+    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
+    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]],
+    Input("add_source", "n_clicks"),
+    Input("remove_source", "n_clicks")
 )
-def update_source_coordinate_values(courent_source_number, source_x_coordinate, source_y_coordinate, source_z_coordinate, save_button):
-    if ctx.triggered_id == "save_source":
-        sources_coordinates_list[courent_source_number - 1] = [source_x_coordinate, source_y_coordinate, source_z_coordinate]
-
-    if ctx.triggered_id == "courent_source_number":
-        return sources_coordinates_list[courent_source_number - 1]
-        
-    return [source_x_coordinate, source_y_coordinate, source_z_coordinate]
+def update_source_coordinate_list(primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates, add_source, remove_source):
+    sources_coordinates = [primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates]
+    for i in range(len(sources_coordinates_list)):
+        sources_coordinates_list[i] = sources_coordinates[i]
+  
+    return [primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates]
 
 @callback(
     Output("sources_with_same_coordinates", "displayed"),
-    Input("courent_source_number", "value"),
-    Input("save_source", "n_clicks")
+    Input("add_source", "n_clicks"),
+    [[Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
+    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
+    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]]
 )
-def display_sources_with_same_coordinates_warning(courent_source_number, save_button):
-    if ctx.triggered_id == "save_source":
-        if 1 < sources_coordinates_list.count(sources_coordinates_list[courent_source_number - 1]):
+def display_sources_with_same_coordinates_warning(add_source, primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates):
+    if (ctx.triggered_id.startswith("primary") and 
+        sources_coordinates_list.count(sources_coordinates_list[0]) > 1):
+        return True
+        
+    if (ctx.triggered_id.startswith("secondary") and
+        sources_coordinates_list.count(sources_coordinates_list[1]) > 1):
+        return True
+        
+    if (ctx.triggered_id.startswith("third") and 
+        sources_coordinates_list.count(sources_coordinates_list[2]) > 1):
+        return True
+
+    if ctx.triggered_id == "add_source":
+        duplicate_coordinates = [coordinates for coordinates in sources_coordinates_list if sources_coordinates_list.count(coordinates) > 1]
+
+        if len(duplicate_coordinates):
             return True
 
     return False
