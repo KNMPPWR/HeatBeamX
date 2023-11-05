@@ -90,7 +90,9 @@ app.layout = html.Div([
                                     ),
                                     dcc.Tab(
                                         label="Laser",
-                                        children=[                                       
+                                        children=[      
+                                            html.Label("Number of sources: ", htmlFor="number_of_sources"),
+                                            dcc.Slider(min=1, step=1, max=3, value=1, id="number_of_sources"),                                 
                                             html.Label("Source number: ", htmlFor="courent_source_number"),
                                             dcc.Dropdown(value=1, id="courent_source_number"),
                                             html.Div(id="source_position_parameters",
@@ -98,15 +100,14 @@ app.layout = html.Div([
                                                         html.Label("Position of aplicator center (without peak): ", htmlFor="source_position_parameters"),
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="source_x_coordinate"),
-                                                        dcc.Input(id="source_x_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="source_x_coordinate", type="number", min=0, step=0.001, value=0),
                                                         html.Label("Y (mm): ", htmlFor="source_y_coordinate"),
-                                                        dcc.Input(id="source_y_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="source_y_coordinate", type="number", min=0, step=0.001, value=0),
                                                         html.Label("Z (mm): ", htmlFor="source_z_coordinate"),
-                                                        dcc.Input(id="source_z_coordinate", type="number", min=0, step=0.001)
+                                                        dcc.Input(id="source_z_coordinate", type="number", min=0, step=0.001, value=0)
                                                     ]),
                                             html.Button("Save", id="save_source"),
-                                            html.Button("Add source", id="add_source", n_clicks=1),
-                                            html.Button("Remove source", id="remove_source", n_clicks=0)
+                                            dcc.ConfirmDialog(id="sources_with_same_coordinates", message="Two or more sources have the same coordinates as this one")
                                         ]
                                     )])
                 ]),
@@ -143,24 +144,21 @@ def update_tissue(tissue):
     return wave_param,native,coagulated,thermal,damage
 
 
-sources_coordinates_list = []
+sources_coordinates_list = [[0,0,0]]
 
 @callback(
     Output("courent_source_number", "options"),
-    Input("courent_source_number", "value"),
-    Input("add_source", "n_clicks"),
-    Input("remove_source", "n_clicks")
+    Input("number_of_sources", "value")
 )
-def update_number_of_sources(courent_source_number, add_clicks, remove_clicks):
-    number_of_sources = add_clicks - remove_clicks
+def update_number_of_sources(number_of_sources):
+    if ctx.triggered_id == "number_of_sources":
+        if len(sources_coordinates_list) < number_of_sources:
+            sources_coordinates_list.append([0,0,0])
 
-    if len(sources_coordinates_list) < number_of_sources:
-        sources_coordinates_list.append([])
+        else:
+            sources_coordinates_list.pop()
 
-    else:
-        sources_coordinates_list.pop(courent_source_number - 1)
-
-    return [i+1 for i in range(number_of_sources)]
+    return [i+1 for i in range(len(sources_coordinates_list))]
 
 @callback(
     [Output("source_x_coordinate", "max"), Output("source_y_coordinate", "max"), Output("source_z_coordinate", "max")],
@@ -183,10 +181,22 @@ def update_source_coordinate_values(courent_source_number, source_x_coordinate, 
     if ctx.triggered_id == "save_source":
         sources_coordinates_list[courent_source_number - 1] = [source_x_coordinate, source_y_coordinate, source_z_coordinate]
 
+    if ctx.triggered_id == "courent_source_number":
         return sources_coordinates_list[courent_source_number - 1]
+        
+    return [source_x_coordinate, source_y_coordinate, source_z_coordinate]
 
-    if sources_coordinates_list[courent_source_number - 1]:
-        return sources_coordinates_list[courent_source_number - 1]
+@callback(
+    Output("sources_with_same_coordinates", "displayed"),
+    Input("courent_source_number", "value"),
+    Input("save_source", "n_clicks")
+)
+def display_sources_with_same_coordinates_warning(courent_source_number, save_button):
+    if ctx.triggered_id == "save_source":
+        if 1 < sources_coordinates_list.count(sources_coordinates_list[courent_source_number - 1]):
+            return True
+
+    return False
 
 if __name__ == '__main__':
     app.run(debug=True)
