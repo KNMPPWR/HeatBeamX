@@ -201,7 +201,9 @@ def update_number_of_sources(add_source, remove_source, add_source_x_coordinate,
             return sources_display_list, True #Display error message and prevent form adding overlaping sources  
     if ctx.triggered_id == "remove_source": #Remove last source
         sources_coordinates_list.pop()
-    
+        for i in range(3):
+            sources_display_list[i]={"display":"none"}
+
     number_of_sources = len(sources_coordinates_list)
 
     for i in range(number_of_sources):#Update display list based on current no. of sources
@@ -215,6 +217,9 @@ def update_number_of_sources(add_source, remove_source, add_source_x_coordinate,
     Input("remove_source", "n_clicks")
 )
 def disable_source_buttons(add_source, remove_source):
+    """
+    Disabling adding and removing buttons
+    """
     if len(sources_coordinates_list) == 0:
         return False, True
     
@@ -271,53 +276,48 @@ def update_third_source_coordinates(add_source, *add_source_coordinates):
         return add_source_coordinates
     
     raise PreventUpdate
+@callback(
+    [Output("primary_source_coordinates_overlap", "displayed"),[Output("primary_source_x_coordinate", "value",allow_duplicate=True), Output("primary_source_y_coordinate", "value",allow_duplicate=True), Output("primary_source_z_coordinate", "value",allow_duplicate=True)]],
+    [Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
+    prevent_initial_call='initial_duplicate'
+)
+def display_primary_source_coordinates_overlaping_warning(x,y,z):
+    if [x,y,z] in sources_coordinates_list[1:2]:
+        return True, sources_coordinates_list[0]
+    else:
+        sources_coordinates_list[0] = [x,y,z]
+        return False, [x,y,z]
 
 @callback(
-    Output("sources_with_overlapping_coordinates", "displayed"),
-    Input("add_source", "n_clicks"),
+    [Output("secondary_source_coordinates_overlap", "displayed"),[Output("secondary_source_x_coordinate", "value",allow_duplicate=True), Output("secondary_source_y_coordinate", "value",allow_duplicate=True), Output("secondary_source_z_coordinate", "value",allow_duplicate=True)]],
+    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
+    prevent_initial_call='initial_duplicate'
 )
-def display_cant_add_source_warning(add_source):
-    if ctx.triggered_id == "add_source":
-        duplicate_coordinates = [coordinates for coordinates in sources_coordinates_list if sources_coordinates_list.count(coordinates) > 1]
-
-        if len(duplicate_coordinates):
-            return True
-
-    return False
-
+def display_secondary_source_coordinates_overlaping_warning(x,y,z):
+    if len(sources_coordinates_list)==3:
+        if [x,y,z] in [sources_coordinates_list[0],sources_coordinates_list[2]]:
+            return True, sources_coordinates_list[1]
+        else:
+            sources_coordinates_list[1] = [x,y,z]
+            return False, [x,y,z]
+    else:
+        if [x,y,z] == sources_coordinates_list[0]:
+            return True, sources_coordinates_list[1]
+        else:
+            sources_coordinates_list[1] = [x,y,z]
+            return False, [x,y,z]
 @callback(
-    Output("primary_source_coordinates_overlap", "displayed"),
-    [Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")]
+    [Output("third_source_coordinates_overlap", "displayed"),[Output("third_source_x_coordinate", "value",allow_duplicate=True), Output("third_source_y_coordinate", "value",allow_duplicate=True), Output("third_source_z_coordinate", "value",allow_duplicate=True)]],
+    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")],
+    prevent_initial_call='initial_duplicate'
 )
-def display_primary_source_coordinates_overlaping_warning(*primary_source_coordinates):
-    if (ctx.triggered_id.startswith("primary") and
-        sources_coordinates_list.count(primary_source_coordinates) > 1):
-        return True
-
-    return False
-
-@callback(
-    Output("secondary_source_coordinates_overlap", "displayed"),
-    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")]
-)
-def display_secondary_source_coordinates_overlaping_warning(*secondary_source_coordinates):
-    if (ctx.triggered_id.startswith("secondary") and
-        sources_coordinates_list.count(secondary_source_coordinates) > 1):
-        return True
-
-    return False
-
-@callback(
-    Output("third_source_coordinates_overlap", "displayed"),
-    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]
-)
-def display_third_source_coordinates_overlaping_warning(*third_source_coordinates):
-    if (ctx.triggered_id.startswith("third") and
-        sources_coordinates_list.count(third_source_coordinates) > 1):
-        return True
-
-    return False
-
+def display_third_source_coordinates_overlaping_warning(x,y,z):
+    if [x,y,z] in [sources_coordinates_list[0],sources_coordinates_list[1]]:
+        return True, sources_coordinates_list[2]
+    else:
+        sources_coordinates_list[2] = [x,y,z]
+        return False, [x,y,z]
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
