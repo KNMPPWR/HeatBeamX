@@ -141,6 +141,7 @@ app.layout = html.Div([
                                                         dcc.ConfirmDialog(id="third_source_coordinates_overlap", message="Third source can't overlap with another source")
                                                     ]),
                                             html.Button("Remove last source", id="remove_source", n_clicks=0, disabled=True),
+                                            dcc.ConfirmDialog(id="position_error_message", message="Source can't overlap with another source")
                                         ]
                                     )])
                 ]),
@@ -150,6 +151,7 @@ app.layout = html.Div([
     ])
 ])
 
+#ROI Callbacks
 @callback(
     [Output("dim_x","value"),Output("dim_y","value"),Output("dim_z","value")],
     Input("voxel_dim_input","value"),
@@ -160,6 +162,7 @@ app.layout = html.Div([
 def calculate_dim(voxel_dim, no_of_voxel_x, no_of_voxel_y, no_of_voxel_z):
     return round(voxel_dim*no_of_voxel_x,3), round(voxel_dim*no_of_voxel_y,3), round(voxel_dim*no_of_voxel_z,3)
 
+#Tissue Callbacks
 @callback(
     [Output("wave_length","value"),
     [Output("native_refr_index","value"),Output("native_absorption","value"),Output("native_scattering","value"),Output("native_g_factor","value")],
@@ -176,32 +179,34 @@ def update_tissue(tissue):
     damage = list(tissues[tissue]["Damage parameters"].values())
     return wave_param,native,coagulated,thermal,damage
 
-
+#Source Callbacks
 sources_coordinates_list = []
-
+sources_display_list = [{"display":"none"},{"display":"none"},{"display":"none"}]
 @callback(
-    [Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],
+    [[Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],Output("position_error_message", "displayed")],
     Input("add_source", "n_clicks"),
     Input("remove_source", "n_clicks"),
-    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")]
+    Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")
 )
-def update_number_of_sources(add_source, remove_source, warning, *add_source_coordinates):
-    if ctx.triggered_id == "add_source":
-        sources_coordinates_list.append(add_source_coordinates)
+def update_number_of_sources(add_source, remove_source, add_source_x_coordinate,add_source_y_coordinate,add_source_z_coordinate):
+    """
+    Adding and removing sources
+    """
+    add_source_coordinates = [add_source_x_coordinate, add_source_y_coordinate, add_source_z_coordinate]
 
-    if ctx.triggered_id == "remove_source":
+    if ctx.triggered_id == "add_source": #When add source button triggered
+        if not add_source_coordinates in sources_coordinates_list: #Check if there isn't other source with the same position
+            sources_coordinates_list.append(add_source_coordinates)
+        else:
+            return sources_display_list, True #Display error message and prevent form adding overlaping sources  
+    if ctx.triggered_id == "remove_source": #Remove last source
         sources_coordinates_list.pop()
     
     number_of_sources = len(sources_coordinates_list)
 
-    style_list = []
-    for _ in range(number_of_sources):
-        style_list.append({"display":"block"})
-
-    for _ in range(3-number_of_sources):
-        style_list.append({"display":"none"})
-
-    return style_list
+    for i in range(number_of_sources):#Update display list based on current no. of sources
+        sources_display_list[i]={"display":"block"}
+    return sources_display_list, False #Display current sources inputs
 
 @callback(
     Output("add_source", "disabled"),
