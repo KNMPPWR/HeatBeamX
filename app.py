@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc, Input, Output, ctx, callback
+from dash.exceptions import PreventUpdate
 import json
 
 with open("assets/tissues.json") as tissues_json:
@@ -92,42 +93,54 @@ app.layout = html.Div([
                                         label="Laser",
                                         children=[   
                                             html.Label("Position of aplicator center (without peak): ", htmlFor="source_position_parameters"),
-                                            html.Div(id="primary_source_position_parameters", style={"display":"block"},
+                                            html.Div(id="add_source_position_parameters", style={"display":"block"},
+                                                    children=[                                            
+                                                        html.Label("X (mm): ", htmlFor="add_source_x_coordinate"),
+                                                        dcc.Input(id="add_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Y (mm): ", htmlFor="add_source_y_coordinate"),
+                                                        dcc.Input(id="add_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Label("Z (mm): ", htmlFor="add_source_z_coordinate"),
+                                                        dcc.Input(id="add_source_z_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        html.Button("Add source", id="add_source", n_clicks=0, disabled=False),
+                                                        dcc.ConfirmDialog(id="sources_with_overlapping_coordinates", message="Can't add source because of overlapping coordinates")
+                                                    ]),
+                                            html.Div(id="primary_source_position_parameters", style={"display":"none"},
                                                     children=[                                            
                                                         html.Label("Primary source: ", htmlFor="primary_source"), 
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="primary_source_x_coordinate"),
-                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Y (mm): ", htmlFor="primary_source_y_coordinate"),
-                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Z (mm): ", htmlFor="primary_source_z_coordinate"),
-                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.ConfirmDialog(id="primary_source_coordinates_overlap", message="Primary source can't overlap with another source")
                                                     ]),
                                             html.Div(id="secondary_source_position_parameters", style={"display":"none"},
                                                     children=[                                            
                                                         html.Label("Secondary source: ", htmlFor="secondary_source"),
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="secondary_source_x_coordinate"),
-                                                        dcc.Input(id="secondary_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="secondary_source_x_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Y (mm): ", htmlFor="secondary_source_y_coordinate"),
-                                                        dcc.Input(id="secondary_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="secondary_source_y_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Z (mm): ", htmlFor="secondary_source_z_coordinate"),
-                                                        dcc.Input(id="secondary_source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                        dcc.Input(id="secondary_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.ConfirmDialog(id="secondary_source_coordinates_overlap", message="Secondary source can't overlap with another source")
                                                     ]),
                                             html.Div(id="third_source_position_parameters", style={"display":"none"},
                                                     children=[                                            
                                                         html.Label("Third source: ", htmlFor="third_source"),
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="third_source_x_coordinate"),
-                                                        dcc.Input(id="third_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="third_source_x_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Y (mm): ", htmlFor="third_source_y_coordinate"),
-                                                        dcc.Input(id="third_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="third_source_y_coordinate", type="number", min=0, step=0.001),
                                                         html.Label("Z (mm): ", htmlFor="third_source_z_coordinate"),
-                                                        dcc.Input(id="third_source_z_coordinate", type="number", min=0, step=0.001, value=0)
+                                                        dcc.Input(id="third_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.ConfirmDialog(id="third_source_coordinates_overlap", message="Third source can't overlap with another source")
                                                     ]),
-                                            html.Button("Add source", id="add_source", n_clicks=0, disabled=False),
-                                            html.Button("Remove source", id="remove_source", n_clicks=0, disabled=True),
-                                            dcc.ConfirmDialog(id="sources_with_same_coordinates", message="Two or more sources have the same coordinates as this one")
+                                            html.Button("Remove last source", id="remove_source", n_clicks=0, disabled=True),
                                         ]
                                     )])
                 ]),
@@ -164,31 +177,31 @@ def update_tissue(tissue):
     return wave_param,native,coagulated,thermal,damage
 
 
-sources_coordinates_list = [[0,0,0]]
+sources_coordinates_list = []
 
 @callback(
-    Output("secondary_source_position_parameters", "style"),
-    Output("third_source_position_parameters", "style"),
+    [Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],
     Input("add_source", "n_clicks"),
-    Input("remove_source", "n_clicks")
+    Input("remove_source", "n_clicks"),
+    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")]
 )
-def update_number_of_sources(add_source, remove_source):
+def update_number_of_sources(add_source, remove_source, warning, *add_source_coordinates):
     if ctx.triggered_id == "add_source":
-        sources_coordinates_list.append([0,0,0])
+        sources_coordinates_list.append(add_source_coordinates)
 
     if ctx.triggered_id == "remove_source":
         sources_coordinates_list.pop()
     
     number_of_sources = len(sources_coordinates_list)
 
-    if number_of_sources == 1:
-        return {"display":"none"}, {"display":"none"}
-    
-    if number_of_sources == 2:
-        return {"display":"block"}, {"display":"none"}
+    style_list = []
+    for _ in range(number_of_sources):
+        style_list.append({"display":"block"})
 
-    if number_of_sources == 3:
-        return {"display":"block"}, {"display":"block"}
+    for _ in range(3-number_of_sources):
+        style_list.append({"display":"none"})
+
+    return style_list
 
 @callback(
     Output("add_source", "disabled"),
@@ -197,16 +210,17 @@ def update_number_of_sources(add_source, remove_source):
     Input("remove_source", "n_clicks")
 )
 def disable_source_buttons(add_source, remove_source):
-    if len(sources_coordinates_list) == 1:
+    if len(sources_coordinates_list) == 0:
         return False, True
     
-    if len(sources_coordinates_list) == 2:
+    if len(sources_coordinates_list) < 3:
         return False, False
     
     if len(sources_coordinates_list) == 3:
         return True, False
 
 @callback(
+    [Output("add_source_x_coordinate", "max"), Output("add_source_y_coordinate", "max"), Output("add_source_z_coordinate", "max")],
     [Output("primary_source_x_coordinate", "max"), Output("primary_source_y_coordinate", "max"), Output("primary_source_z_coordinate", "max")],
     [Output("secondary_source_x_coordinate", "max"), Output("secondary_source_y_coordinate", "max"), Output("secondary_source_z_coordinate", "max")],
     [Output("third_source_x_coordinate", "max"), Output("third_source_y_coordinate", "max"), Output("third_source_z_coordinate", "max")],
@@ -215,45 +229,49 @@ def disable_source_buttons(add_source, remove_source):
     Input("dim_z", "value")
 )
 def update_source_coordinate_max(dim_x, dim_y, dim_z):
-    return 3*[dim_x, dim_y, dim_z]
+    return 4*[dim_x, dim_y, dim_z]
 
 @callback(
-    [[Output("primary_source_x_coordinate", "value"), Output("primary_source_y_coordinate", "value"), Output("primary_source_z_coordinate", "value")],
+    [Output("primary_source_x_coordinate", "value"), Output("primary_source_y_coordinate", "value"), Output("primary_source_z_coordinate", "value")],
+    Input("add_source", "n_clicks"),
+    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
+)
+def update_primary_source_coordinates(add_source, *add_source_coordinates):
+    if (ctx.triggered_id == "add_source" and
+        len(sources_coordinates_list) == 1):
+        return add_source_coordinates
+    
+    raise PreventUpdate
+
+@callback(
     [Output("secondary_source_x_coordinate", "value"), Output("secondary_source_y_coordinate", "value"), Output("secondary_source_z_coordinate", "value")],
-    [Output("third_source_x_coordinate", "value"), Output("third_source_y_coordinate", "value"), Output("third_source_z_coordinate", "value")]],
-    [[Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
-    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
-    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]],
     Input("add_source", "n_clicks"),
-    Input("remove_source", "n_clicks")
+    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
 )
-def update_source_coordinate_list(primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates, add_source, remove_source):
-    sources_coordinates = [primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates]
-    for i in range(len(sources_coordinates_list)):
-        sources_coordinates_list[i] = sources_coordinates[i]
-  
-    return [primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates]
+def update_secondary_source_coordinates(add_source, *add_source_coordinates):
+    if (ctx.triggered_id == "add_source" and
+        len(sources_coordinates_list) == 2):
+        return add_source_coordinates
+    
+    raise PreventUpdate
 
 @callback(
-    Output("sources_with_same_coordinates", "displayed"),
+    [Output("third_source_x_coordinate", "value"), Output("third_source_y_coordinate", "value"), Output("third_source_z_coordinate", "value")],
     Input("add_source", "n_clicks"),
-    [[Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
-    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
-    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]]
+    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
 )
-def display_sources_with_same_coordinates_warning(add_source, primary_sourcecoordinates, secondary_source_coordinates, third_source_coordinates):
-    if (ctx.triggered_id.startswith("primary") and 
-        sources_coordinates_list.count(sources_coordinates_list[0]) > 1):
-        return True
-        
-    if (ctx.triggered_id.startswith("secondary") and
-        sources_coordinates_list.count(sources_coordinates_list[1]) > 1):
-        return True
-        
-    if (ctx.triggered_id.startswith("third") and 
-        sources_coordinates_list.count(sources_coordinates_list[2]) > 1):
-        return True
+def update_third_source_coordinates(add_source, *add_source_coordinates):
+    if (ctx.triggered_id == "add_source" and
+        len(sources_coordinates_list) == 3):
+        return add_source_coordinates
+    
+    raise PreventUpdate
 
+@callback(
+    Output("sources_with_overlapping_coordinates", "displayed"),
+    Input("add_source", "n_clicks"),
+)
+def display_cant_add_source_warning(add_source):
     if ctx.triggered_id == "add_source":
         duplicate_coordinates = [coordinates for coordinates in sources_coordinates_list if sources_coordinates_list.count(coordinates) > 1]
 
@@ -261,6 +279,40 @@ def display_sources_with_same_coordinates_warning(add_source, primary_sourcecoor
             return True
 
     return False
+
+@callback(
+    Output("primary_source_coordinates_overlap", "displayed"),
+    [Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")]
+)
+def display_primary_source_coordinates_overlaping_warning(*primary_source_coordinates):
+    if (ctx.triggered_id.startswith("primary") and
+        sources_coordinates_list.count(primary_source_coordinates) > 1):
+        return True
+
+    return False
+
+@callback(
+    Output("secondary_source_coordinates_overlap", "displayed"),
+    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")]
+)
+def display_secondary_source_coordinates_overlaping_warning(*secondary_source_coordinates):
+    if (ctx.triggered_id.startswith("secondary") and
+        sources_coordinates_list.count(secondary_source_coordinates) > 1):
+        return True
+
+    return False
+
+@callback(
+    Output("third_source_coordinates_overlap", "displayed"),
+    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")]
+)
+def display_third_source_coordinates_overlaping_warning(*third_source_coordinates):
+    if (ctx.triggered_id.startswith("third") and
+        sources_coordinates_list.count(third_source_coordinates) > 1):
+        return True
+
+    return False
+
 
 if __name__ == '__main__':
     app.run(debug=True)
