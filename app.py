@@ -285,11 +285,8 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
-            print("len2")
-            print([x,y,z], sources_coordinates[1])
             #Checking if changed position isn't overlapping with already existing ones    
             if [x,y,z] == sources_coordinates[1]:
-                print("1 as 2")
                 #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
