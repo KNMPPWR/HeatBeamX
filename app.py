@@ -217,10 +217,10 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
     sources_display = sources_display_input
     
     if ctx.triggered_id == "add_source": #Checking if add source button is clicked
-        if not add_source_coordinates in sources_coordinates: #Check if new source positiond isn't overlaping with already existing sources
+        if not add_source_coordinates in sources_coordinates: #Check if new source positiond isn't overlapping with already existing sources
             sources_coordinates.append(add_source_coordinates)
         else:
-            #Return warning if postions are overlaping
+            #Return warning if postions are overlapping
             return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display, 
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -266,9 +266,9 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
     if ctx.triggered_id=="primary_source_x_coordinate" or ctx.triggered_id=="primary_source_y_coordinate"  or ctx.triggered_id=="primary_source_z_coordinate" :#If we change first source's position
         x,y,z = x1_in, y1_in, z1_in
         if len(sources_coordinates)==3:
-            #Checking if changed position isn't overlaping with already existing ones    
+            #Checking if changed position isn't overlapping with already existing ones    
             if [x,y,z] in sources_coordinates[1:2]:
-                #Prevent change and raise warning about overlaping positions
+                #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -276,7 +276,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=True,warning2=False,warning3=False,
                     new_warning=False)
             else:
-                #If positions aren't overlaping, change the position of first source
+                #If positions aren't overlapping, change the position of first source
                 sources_coordinates[0] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x, y1_out=y, z1_out=z,
@@ -285,9 +285,9 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
-            #Checking if changed position isn't overlaping with already existing ones    
+            #Checking if changed position isn't overlapping with already existing ones    
             if [x,y,z] in sources_coordinates[1]:
-                #Prevent change and raise warning about overlaping positions
+                #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -295,7 +295,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=True,warning2=False,warning3=False,
                     new_warning=False)
             else:
-                #If positions aren't overlaping, change the position of first source
+                #If positions aren't overlapping, change the position of first source
                 sources_coordinates[0] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x, y1_out=y, z1_out=z,
@@ -319,9 +319,9 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
     if ctx.triggered_id=="secondary_source_x_coordinate" or ctx.triggered_id=="secondary_source_y_coordinate"  or ctx.triggered_id=="secondary_source_z_coordinate":
         x,y,z = x2_in, y2_in, z2_in
         if len(sources_coordinates)==3:
-            #Checking if changed position isn't overlaping with already existing ones    
+            #Checking if changed position isn't overlapping with already existing ones    
             if [x,y,z] in [sources_coordinates[0],sources_coordinates[2]]:
-                #Prevent change and raise warning about overlaping positions
+                #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
@@ -329,7 +329,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=True,warning3=False,
                     new_warning=False)
             else:
-                #If positions aren't overlaping, change the position of second source
+                #If positions aren't overlapping, change the position of second source
                 sources_coordinates[1] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -338,9 +338,9 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
-            #Checking if changed position isn't overlaping with already existing ones
+            #Checking if changed position isn't overlapping with already existing ones
             if [x,y,z] in sources_coordinates[0]:
-                #Prevent change and raise warning about overlaping positions
+                #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
@@ -348,7 +348,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=True,warning3=False,
                     new_warning=False)
             else:
-                #If positions aren't overlaping, change the position of second source
+                #If positions aren't overlapping, change the position of second source
                 sources_coordinates[1] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -363,9 +363,9 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
     if ctx.triggered_id=="third_source_x_coordinate" or ctx.triggered_id=="third_source_y_coordinate"  or ctx.triggered_id=="third_source_z_coordinate":
         x,y,z = x3_in, y3_in, z3_in
         if len(sources_coordinates)==3:   
-            #Checking if changed position isn't overlaping with already existing ones 
+            #Checking if changed position isn't overlapping with already existing ones 
             if [x,y,z] in [sources_coordinates[0],sources_coordinates[1]]:
-                #Prevent change and raise warning about overlaping positions
+                #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -373,7 +373,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=False,warning3=True,
                     new_warning=False)
             else:
-                #If positions aren't overlaping, change the position of third source
+                #If positions aren't overlapping, change the position of third source
                 sources_coordinates[2] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -384,7 +384,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
         else:
             #Prevent auto update when we don't have any sources
             raise PreventUpdate
-    #Preventing postions when we refresh app
+    #Preserving postions when we refresh app
     if len(sources_coordinates) == 0:
         return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
