@@ -8,8 +8,8 @@ with open("assets/tissues.json") as tissues_json:
 app = Dash(__name__)
 
 memory = html.Div([
-    dcc.Store(id="sources_coordinates_list", data=[], storage_type="memory"),
-    dcc.Store(id="sources_display_list", data=[{"display":"none"},{"display":"none"},{"display":"none"}], storage_type="memory")
+    dcc.Store(id="sources_coordinates_list", data=[], storage_type="session"),
+    dcc.Store(id="sources_display_list", data=[{"display":"none"},{"display":"none"},{"display":"none"}], storage_type="session")
 ])
 
 app.layout = html.Div([
@@ -115,11 +115,11 @@ app.layout = html.Div([
                                                         html.Label("Primary source: ", htmlFor="primary_source"), 
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="primary_source_x_coordinate"),
-                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session', persisted_props=['value']),
                                                         html.Label("Y (mm): ", htmlFor="primary_source_y_coordinate"),
-                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session'),
                                                         html.Label("Z (mm): ", htmlFor="primary_source_z_coordinate"),
-                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session'),
                                                         dcc.ConfirmDialog(id="primary_source_coordinates_overlap", message="Primary source can't overlap with another source")
                                                     ]),
                                             html.Div(id="secondary_source_position_parameters", style={"display":"none"},
@@ -187,34 +187,210 @@ def update_tissue(tissue):
 
 #Source Callbacks
 @callback(
-    [Output("sources_coordinates_list","data"),Output("sources_display_list","data"),[Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],Output("position_error_message", "displayed")],
-    Input("sources_coordinates_list","data"),
-    Input("sources_display_list","data"),
-    Input("add_source", "n_clicks"),
-    Input("remove_source", "n_clicks"),
-    Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")
+    output = dict(sources_coordinates_output=Output("sources_coordinates_list","data"),sources_display_output=Output("sources_display_list","data"),
+                    x1_out=Output("primary_source_x_coordinate", "value"), y1_out=Output("primary_source_y_coordinate", "value"), z1_out=Output("primary_source_z_coordinate", "value"),
+                    x2_out=Output("secondary_source_x_coordinate", "value"), y2_out=Output("secondary_source_y_coordinate", "value"), z2_out=Output("secondary_source_z_coordinate", "value"),
+                    x3_out=Output("third_source_x_coordinate", "value"), y3_out=Output("third_source_y_coordinate", "value"), z3_out=Output("third_source_z_coordinate", "value"),
+                    warning1=Output("primary_source_coordinates_overlap", "displayed"),warning2=Output("secondary_source_coordinates_overlap", "displayed"),warning3=Output("third_source_coordinates_overlap", "displayed"),
+                    new_warning=Output("position_error_message", "displayed")),
+    inputs = dict(sources_coordinates_input=Input("sources_coordinates_list","data"),sources_display_input=Input("sources_display_list","data"),
+                    x1_in=Input("primary_source_x_coordinate", "value"), y1_in=Input("primary_source_y_coordinate", "value"), z1_in=Input("primary_source_z_coordinate", "value"),
+                    x2_in=Input("secondary_source_x_coordinate", "value"), y2_in=Input("secondary_source_y_coordinate", "value"), z2_in=Input("secondary_source_z_coordinate", "value"),
+                    x3_in=Input("third_source_x_coordinate", "value"), y3_in=Input("third_source_y_coordinate", "value"), z3_in=Input("third_source_z_coordinate", "value"),
+                    new_x = Input("add_source_x_coordinate", "value"), new_y = Input("add_source_y_coordinate", "value"), new_z = Input("add_source_z_coordinate", "value"),
+                    add_source = Input("add_source","n_clicks"), remove_source = Input("remove_source", "n_clicks"))
 )
-def update_number_of_sources(sources_coordinates_list,sources_display_list,add_source, remove_source, add_source_x_coordinate,add_source_y_coordinate,add_source_z_coordinate):
-    """
-    Adding and removing sources
-    """
-    add_source_coordinates = [add_source_x_coordinate, add_source_y_coordinate, add_source_z_coordinate]
-
-    if ctx.triggered_id == "add_source": #When add source button triggered
-        if not add_source_coordinates in sources_coordinates_list: #Check if there isn't other source with the same position
-            sources_coordinates_list.append(add_source_coordinates)
+def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1_in,x2_in,y2_in,z2_in,x3_in,y3_in,z3_in,new_x,new_y,new_z,add_source,remove_source):
+    
+    print("update")
+    add_source_coordinates = [new_x,new_y,new_z]
+    sources_coordinates = sources_coordinates_input
+    sources_display = sources_display_input
+    
+    if ctx.triggered_id == "add_source":
+        if not add_source_coordinates in sources_coordinates:
+            sources_coordinates.append(add_source_coordinates)
         else:
-            return sources_coordinates_list,sources_display_list,sources_display_list, True #Display error message and prevent form adding overlaping sources  
-    if ctx.triggered_id == "remove_source": #Remove last source
-        sources_coordinates_list.pop()
+            return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=True)
+    if ctx.triggered_id == "remove_source":
+        sources_coordinates.pop()
         for i in range(3):
-            sources_display_list[i]={"display":"none"}
+            sources_display[i]={"display":"none"}
+    print(sources_coordinates)
+    for i in range(len(sources_coordinates)):
+        sources_display[i] = {"display":"block"}
+    print(sources_display)
+    if ctx.triggered_id == "add_source" and len(sources_coordinates)==1:
+        x1, y1, z1 = new_x, new_y, new_z
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1, y1_out=y1, z1_out=z1,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==2:
+        x2, y2, z2 = new_x, new_y, new_z
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2, y2_out=y2, z2_out=z2,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==3:
+        x3, y3, z3 = new_x, new_y, new_z
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3, y3_out=y3, z3_out=z3,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    if ctx.triggered_id=="primary_source_x_coordinate" or ctx.triggered_id=="primary_source_y_coordinate"  or ctx.triggered_id=="primary_source_z_coordinate" :
+        x,y,z = x1_in, y1_in, z1_in
+        if len(sources_coordinates)==3:    
+            if [x,y,z] in sources_coordinates[1:2]:
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=True,warning2=False,warning3=False,
+                    new_warning=False)
+            else:
+                sources_coordinates[0] = [x,y,z]
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x, y1_out=y, z1_out=z,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        elif len(sources_coordinates)==2:
+            if [x,y,z] in sources_coordinates[1]:
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=True,warning2=False,warning3=False,
+                    new_warning=False)
+            else:
+                sources_coordinates[0] = [x,y,z]
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x, y1_out=y, z1_out=z,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        elif len(sources_coordinates)==1:
+            sources_coordinates[0] = [x,y,z]
+            return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x, y1_out=y, z1_out=z,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        else:
+            raise PreventUpdate
+    if ctx.triggered_id=="secondary_source_x_coordinate" or ctx.triggered_id=="secondary_source_y_coordinate"  or ctx.triggered_id=="secondary_source_z_coordinate":
+        x,y,z = x2_in, y2_in, z2_in
+        if len(sources_coordinates)==3:    
+            if [x,y,z] in [sources_coordinates[0],sources_coordinates[2]]:
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=True,warning3=False,
+                    new_warning=False)
+            else:
+                sources_coordinates[1] = [x,y,z]
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x, y2_out=y, z2_out=z,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        elif len(sources_coordinates)==2:
+            if [x,y,z] in sources_coordinates[0]:
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=True,warning3=False,
+                    new_warning=False)
+            else:
+                sources_coordinates[1] = [x,y,z]
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x, y2_out=y, z2_out=z,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        else:
+            raise PreventUpdate
+    if ctx.triggered_id=="third_source_x_coordinate" or ctx.triggered_id=="third_source_y_coordinate"  or ctx.triggered_id=="third_source_z_coordinate":
+        x,y,z = x3_in, y3_in, z3_in
+        if len(sources_coordinates)==3:    
+            if [x,y,z] in [sources_coordinates[0],sources_coordinates[1]]:
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=sources_coordinates[2][0], y3_out=sources_coordinates[2][1], z3_out=sources_coordinates[2][2],
+                    warning1=False,warning2=False,warning3=True,
+                    new_warning=False)
+            else:
+                sources_coordinates[2] = [x,y,z]
+                return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x, y3_out=y, z3_out=z,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+        else:
+            raise PreventUpdate
+    if len(sources_coordinates) == 0:
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    if len(sources_coordinates)==1:
+        x1 ,y1, z1 = sources_coordinates[0]
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1, y1_out=y1, z1_out=z1,
+                    x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    if len(sources_coordinates)==2:
+        x1 ,y1, z1 = sources_coordinates[0]
+        x2 ,y2, z2 = sources_coordinates[1]
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1, y1_out=y1, z1_out=z1,
+                    x2_out=x2, y2_out=y2, z2_out=z2,
+                    x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    if len(sources_coordinates)==3:
+        x1 ,y1, z1 = sources_coordinates[0]
+        x2 ,y2, z2 = sources_coordinates[1]
+        x3 ,y3, z3 = sources_coordinates[2]
+        return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+                    x1_out=x1, y1_out=y1, z1_out=z1,
+                    x2_out=x2, y2_out=y2, z2_out=z2,
+                    x3_out=x3, y3_out=y3, z3_out=z3,
+                    warning1=False,warning2=False,warning3=False,
+                    new_warning=False)
+    raise PreventUpdate
 
-    number_of_sources = len(sources_coordinates_list)
-
-    for i in range(number_of_sources):#Update display list based on current no. of sources
-        sources_display_list[i]={"display":"block"}
-    return sources_coordinates_list,sources_display_list,sources_display_list, False #Display current sources inputs
+@callback(
+    [Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],
+    Input("sources_display_list","data"),
+)
+def update_number_of_sources(sources_display_list):
+    return sources_display_list
 
 @callback(
     Output("add_source", "disabled"),
@@ -224,9 +400,7 @@ def update_number_of_sources(sources_coordinates_list,sources_display_list,add_s
     Input("remove_source", "n_clicks")
 )
 def disable_source_buttons(sources_coordinates_list,add_source, remove_source):
-    """
-    Disabling adding and removing buttons
-    """
+
     if len(sources_coordinates_list) == 0:
         return False, True
     
@@ -248,105 +422,6 @@ def disable_source_buttons(sources_coordinates_list,add_source, remove_source):
 def update_source_coordinate_max(dim_x, dim_y, dim_z):
     return 4*[dim_x, dim_y, dim_z]
 
-@callback(
-    [Output("primary_source_x_coordinate", "value"), Output("primary_source_y_coordinate", "value"), Output("primary_source_z_coordinate", "value")],
-    Input("sources_coordinates_list","data"),
-    Input("add_source", "n_clicks"),
-    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
-)
-def update_primary_source_coordinates(sources_coordinates_list,add_source, *add_source_coordinates):
-    if (ctx.triggered_id == "add_source" and
-        len(sources_coordinates_list) == 1):
-        return add_source_coordinates
-    
-    raise PreventUpdate
-
-@callback(
-    [Output("secondary_source_x_coordinate", "value"), Output("secondary_source_y_coordinate", "value"), Output("secondary_source_z_coordinate", "value")],
-    Input("sources_coordinates_list","data"),
-    Input("add_source", "n_clicks"),
-    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
-)
-def update_secondary_source_coordinates(sources_coordinates_list,add_source, *add_source_coordinates):
-    if (ctx.triggered_id == "add_source" and
-        len(sources_coordinates_list) == 2):
-        return add_source_coordinates
-    
-    raise PreventUpdate
-
-@callback(
-    [Output("third_source_x_coordinate", "value"), Output("third_source_y_coordinate", "value"), Output("third_source_z_coordinate", "value")],
-    Input("sources_coordinates_list","data"),
-    Input("add_source", "n_clicks"),
-    [Input("add_source_x_coordinate", "value"), Input("add_source_y_coordinate", "value"), Input("add_source_z_coordinate", "value")],        
-)
-def update_third_source_coordinates(sources_coordinates_list,add_source, *add_source_coordinates):
-    if (ctx.triggered_id == "add_source" and
-        len(sources_coordinates_list) == 3):
-        return add_source_coordinates
-    
-    raise PreventUpdate
-@callback(
-    [Output("sources_coordinates_list","data",allow_duplicate=True),Output("primary_source_coordinates_overlap", "displayed"),[Output("primary_source_x_coordinate", "value",allow_duplicate=True), Output("primary_source_y_coordinate", "value",allow_duplicate=True), Output("primary_source_z_coordinate", "value",allow_duplicate=True)]],
-    Input("sources_coordinates_list","data"),    
-    [Input("primary_source_x_coordinate", "value"), Input("primary_source_y_coordinate", "value"), Input("primary_source_z_coordinate", "value")],
-    prevent_initial_call='initial_duplicate'
-)
-def display_primary_source_coordinates_overlaping_warning(sources_coordinates_list,x,y,z):
-    if len(sources_coordinates_list)==3:    
-        if [x,y,z] in sources_coordinates_list[1:2]:
-            return sources_coordinates_list,True, sources_coordinates_list[0]
-        else:
-            sources_coordinates_list[0] = [x,y,z]
-            return sources_coordinates_list,False, [x,y,z]
-    elif len(sources_coordinates_list)==2:
-        if [x,y,z] in sources_coordinates_list[1]:
-            return sources_coordinates_list,True, sources_coordinates_list[0]
-        else:
-            sources_coordinates_list[0] = [x,y,z]
-            return sources_coordinates_list,False, [x,y,z]
-    elif len(sources_coordinates_list)==1:
-        sources_coordinates_list[0] = [x,y,z]
-        return sources_coordinates_list,False, [x,y,z]
-    else:
-        raise PreventUpdate
-
-@callback(
-    [Output("sources_coordinates_list","data",allow_duplicate=True),Output("secondary_source_coordinates_overlap", "displayed"),[Output("secondary_source_x_coordinate", "value",allow_duplicate=True), Output("secondary_source_y_coordinate", "value",allow_duplicate=True), Output("secondary_source_z_coordinate", "value",allow_duplicate=True)]],
-    Input("sources_coordinates_list","data"), 
-    [Input("secondary_source_x_coordinate", "value"), Input("secondary_source_y_coordinate", "value"), Input("secondary_source_z_coordinate", "value")],
-    prevent_initial_call='initial_duplicate'
-)
-def display_secondary_source_coordinates_overlaping_warning(sources_coordinates_list,x,y,z):
-    if len(sources_coordinates_list)==3:
-        if [x,y,z] in [sources_coordinates_list[0],sources_coordinates_list[2]]:
-            return sources_coordinates_list,True, sources_coordinates_list[1]
-        else:
-            sources_coordinates_list[1] = [x,y,z]
-            return sources_coordinates_list,False, [x,y,z]
-    elif len(sources_coordinates_list)==2:
-        if [x,y,z] == sources_coordinates_list[0]:
-            return sources_coordinates_list,True, sources_coordinates_list[1]
-        else:
-            sources_coordinates_list[1] = [x,y,z]
-            return sources_coordinates_list,False, [x,y,z]
-    else:
-        raise PreventUpdate
-@callback(
-    [Output("sources_coordinates_list","data",allow_duplicate=True),Output("third_source_coordinates_overlap", "displayed"),[Output("third_source_x_coordinate", "value",allow_duplicate=True), Output("third_source_y_coordinate", "value",allow_duplicate=True), Output("third_source_z_coordinate", "value",allow_duplicate=True)]],
-    Input("sources_coordinates_list","data"), 
-    [Input("third_source_x_coordinate", "value"), Input("third_source_y_coordinate", "value"), Input("third_source_z_coordinate", "value")],
-    prevent_initial_call='initial_duplicate'
-)
-def display_third_source_coordinates_overlaping_warning(sources_coordinates_list,x,y,z):
-    if len(sources_coordinates_list)==3:
-        if [x,y,z] in [sources_coordinates_list[0],sources_coordinates_list[1]]:
-            return sources_coordinates_list,True, sources_coordinates_list[2]
-        else:
-            sources_coordinates_list[2] = [x,y,z]
-            return sources_coordinates_list,False, [x,y,z]
-    else:
-        raise PreventUpdate
 if __name__ == '__main__':
     app.run(debug=True)
     
