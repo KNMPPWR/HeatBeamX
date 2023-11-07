@@ -2,11 +2,13 @@ from dash import Dash, html, dcc, Input, Output, ctx, callback
 from dash.exceptions import PreventUpdate
 import json
 
+#Reading data from json file
 with open("assets/tissues.json") as tissues_json:
     tissues = json.load(tissues_json)
 
 app = Dash(__name__)
 
+#Variables 
 memory = html.Div([
     dcc.Store(id="sources_coordinates_list", data=[], storage_type="session"),
     dcc.Store(id="sources_display_list", data=[{"display":"none"},{"display":"none"},{"display":"none"}], storage_type="session")
@@ -166,6 +168,9 @@ app.layout = html.Div([
     Input("no_of_voxel_z","value"),
 )
 def calculate_dim(voxel_dim, no_of_voxel_x, no_of_voxel_y, no_of_voxel_z):
+    """
+    Calculating size of ROI
+    """
     return round(voxel_dim*no_of_voxel_x,3), round(voxel_dim*no_of_voxel_y,3), round(voxel_dim*no_of_voxel_z,3)
 
 #Tissue Callbacks
@@ -178,6 +183,9 @@ def calculate_dim(voxel_dim, no_of_voxel_x, no_of_voxel_y, no_of_voxel_z):
     Input("tissue_select","value")
 )
 def update_tissue(tissue):
+    """
+    Reading tissue parameters form tissues.json
+    """
     wave_param = tissues[tissue]["Optical parameters"]["Wave length"]
     native = list(tissues[tissue]["Optical parameters"]["Native"].values())
     coagulated = list(tissues[tissue]["Optical parameters"]["Coagulated"].values())
@@ -200,59 +208,67 @@ def update_tissue(tissue):
                     new_x = Input("add_source_x_coordinate", "value"), new_y = Input("add_source_y_coordinate", "value"), new_z = Input("add_source_z_coordinate", "value"),
                     add_source = Input("add_source","n_clicks"), remove_source = Input("remove_source", "n_clicks"))
 )
-def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1_in,x2_in,y2_in,z2_in,x3_in,y3_in,z3_in,new_x,new_y,new_z,add_source,remove_source):
-    
-    print("update")
+def update_source_postions(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1_in,x2_in,y2_in,z2_in,x3_in,y3_in,z3_in,new_x,new_y,new_z,add_source,remove_source):
+    """
+    Function to adding, removing and changing postions of sources
+    """
     add_source_coordinates = [new_x,new_y,new_z]
     sources_coordinates = sources_coordinates_input
     sources_display = sources_display_input
     
-    if ctx.triggered_id == "add_source":
-        if not add_source_coordinates in sources_coordinates:
+    if ctx.triggered_id == "add_source": #Checking if add source button is clicked
+        if not add_source_coordinates in sources_coordinates: #Check if new source positiond isn't overlaping with already existing sources
             sources_coordinates.append(add_source_coordinates)
         else:
-            return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
+            #Return warning if postions are overlaping
+            return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display, 
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
                     x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
                     warning1=False,warning2=False,warning3=False,
                     new_warning=True)
-    if ctx.triggered_id == "remove_source":
+    if ctx.triggered_id == "remove_source":#Check if remove last source button is clicked. If yes remove last value form source coordinates
         sources_coordinates.pop()
+        #Start of changing display values
         for i in range(3):
             sources_display[i]={"display":"none"}
-    print(sources_coordinates)
-    for i in range(len(sources_coordinates)):
+    for i in range(len(sources_coordinates)): #This probably can be improved !!!
         sources_display[i] = {"display":"block"}
-    print(sources_display)
-    if ctx.triggered_id == "add_source" and len(sources_coordinates)==1:
+    #End of changing display values
+    if ctx.triggered_id == "add_source" and len(sources_coordinates)==1: #If we are adding first source
         x1, y1, z1 = new_x, new_y, new_z
+        #Update first source's position
         return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1, y1_out=y1, z1_out=z1,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
                     x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
-    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==2:
+    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==2: #If we are adding second source
         x2, y2, z2 = new_x, new_y, new_z
+        #Update second source's position
         return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2, y2_out=y2, z2_out=z2,
                     x3_out=x3_in, y3_out=y3_in, z3_out=z3_in,
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
-    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==3:
+    elif ctx.triggered_id == "add_source" and len(sources_coordinates)==3: #If we are adding third source
         x3, y3, z3 = new_x, new_y, new_z
+        #Update third source's postion
         return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
                     x3_out=x3, y3_out=y3, z3_out=z3,
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
-    if ctx.triggered_id=="primary_source_x_coordinate" or ctx.triggered_id=="primary_source_y_coordinate"  or ctx.triggered_id=="primary_source_z_coordinate" :
+    #Changing first source's postion
+    if ctx.triggered_id=="primary_source_x_coordinate" or ctx.triggered_id=="primary_source_y_coordinate"  or ctx.triggered_id=="primary_source_z_coordinate" :#If we change first source's position
         x,y,z = x1_in, y1_in, z1_in
-        if len(sources_coordinates)==3:    
+        if len(sources_coordinates)==3:
+            #Checking if changed position isn't overlaping with already existing ones    
             if [x,y,z] in sources_coordinates[1:2]:
+                #Prevent change and raise warning about overlaping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -260,6 +276,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=True,warning2=False,warning3=False,
                     new_warning=False)
             else:
+                #If positions aren't overlaping, change the position of first source
                 sources_coordinates[0] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x, y1_out=y, z1_out=z,
@@ -268,7 +285,9 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
+            #Checking if changed position isn't overlaping with already existing ones    
             if [x,y,z] in sources_coordinates[1]:
+                #Prevent change and raise warning about overlaping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -276,6 +295,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=True,warning2=False,warning3=False,
                     new_warning=False)
             else:
+                #If positions aren't overlaping, change the position of first source
                 sources_coordinates[0] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x, y1_out=y, z1_out=z,
@@ -284,6 +304,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==1:
+            #There's only one source so we can change the postion
             sources_coordinates[0] = [x,y,z]
             return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x, y1_out=y, z1_out=z,
@@ -292,11 +313,15 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         else:
+            #Prevent auto update when we don't have any sources
             raise PreventUpdate
+    #Changing second source's postion
     if ctx.triggered_id=="secondary_source_x_coordinate" or ctx.triggered_id=="secondary_source_y_coordinate"  or ctx.triggered_id=="secondary_source_z_coordinate":
         x,y,z = x2_in, y2_in, z2_in
-        if len(sources_coordinates)==3:    
+        if len(sources_coordinates)==3:
+            #Checking if changed position isn't overlaping with already existing ones    
             if [x,y,z] in [sources_coordinates[0],sources_coordinates[2]]:
+                #Prevent change and raise warning about overlaping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
@@ -304,6 +329,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=True,warning3=False,
                     new_warning=False)
             else:
+                #If positions aren't overlaping, change the position of second source
                 sources_coordinates[1] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -312,7 +338,9 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
+            #Checking if changed position isn't overlaping with already existing ones
             if [x,y,z] in sources_coordinates[0]:
+                #Prevent change and raise warning about overlaping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=sources_coordinates[1][0], y2_out=sources_coordinates[1][1], z2_out=sources_coordinates[1][2],
@@ -320,6 +348,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=True,warning3=False,
                     new_warning=False)
             else:
+                #If positions aren't overlaping, change the position of second source
                 sources_coordinates[1] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -328,11 +357,15 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         else:
+            #Prevent auto update when we don't have any sources
             raise PreventUpdate
+    #Changing third source's postion
     if ctx.triggered_id=="third_source_x_coordinate" or ctx.triggered_id=="third_source_y_coordinate"  or ctx.triggered_id=="third_source_z_coordinate":
         x,y,z = x3_in, y3_in, z3_in
-        if len(sources_coordinates)==3:    
+        if len(sources_coordinates)==3:   
+            #Checking if changed position isn't overlaping with already existing ones 
             if [x,y,z] in [sources_coordinates[0],sources_coordinates[1]]:
+                #Prevent change and raise warning about overlaping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
                     x2_out=x2_in, y2_out=y2_in, z2_out=z2_in,
@@ -340,6 +373,7 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=True,
                     new_warning=False)
             else:
+                #If positions aren't overlaping, change the position of third source
                 sources_coordinates[2] = [x,y,z]
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -348,7 +382,9 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         else:
+            #Prevent auto update when we don't have any sources
             raise PreventUpdate
+    #Preventing postions when we refresh app
     if len(sources_coordinates) == 0:
         return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
@@ -383,13 +419,17 @@ def update_source(sources_coordinates_input,sources_display_input,x1_in,y1_in,z1
                     x3_out=x3, y3_out=y3, z3_out=z3,
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
-    raise PreventUpdate
+    
+    raise PreventUpdate #Just in case if we get here, to prevent rasing errror
 
 @callback(
     [Output("primary_source_position_parameters", "style"),Output("secondary_source_position_parameters", "style"),Output("third_source_position_parameters", "style")],
     Input("sources_display_list","data"),
 )
-def update_number_of_sources(sources_display_list):
+def update_sources_display(sources_display_list):
+    """
+    Updating sources display 
+    """
     return sources_display_list
 
 @callback(
@@ -401,13 +441,13 @@ def update_number_of_sources(sources_display_list):
 )
 def disable_source_buttons(sources_coordinates_list,add_source, remove_source):
 
-    if len(sources_coordinates_list) == 0:
+    if len(sources_coordinates_list) == 0:#Disable remove button, because we don't have any sources
         return False, True
     
-    if len(sources_coordinates_list) < 3:
+    if len(sources_coordinates_list) < 3 and len(sources_coordinates_list)>0:#You can add and remove sources. At least one source, but below limit
         return False, False
     
-    if len(sources_coordinates_list) == 3:
+    if len(sources_coordinates_list) >= 3:#Disable adding button, because we have reached the limit
         return True, False
 
 @callback(
@@ -420,6 +460,9 @@ def disable_source_buttons(sources_coordinates_list,add_source, remove_source):
     Input("dim_z", "value")
 )
 def update_source_coordinate_max(dim_x, dim_y, dim_z):
+    """
+    Updating maximum value of source postion, so it's in the ROI
+    """
     return 4*[dim_x, dim_y, dim_z]
 
 if __name__ == '__main__':
