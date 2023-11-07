@@ -104,11 +104,11 @@ app.layout = html.Div([
                                             html.Div(id="add_source_position_parameters", style={"display":"block"},
                                                     children=[                                            
                                                         html.Label("X (mm): ", htmlFor="add_source_x_coordinate"),
-                                                        dcc.Input(id="add_source_x_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
+                                                        dcc.Input(id="add_source_x_coordinate", type="number", min=0, step=0.001, value=0),
                                                         html.Label("Y (mm): ", htmlFor="add_source_y_coordinate"),
-                                                        dcc.Input(id="add_source_y_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
+                                                        dcc.Input(id="add_source_y_coordinate", type="number", min=0, step=0.001, value=0),
                                                         html.Label("Z (mm): ", htmlFor="add_source_z_coordinate"),
-                                                        dcc.Input(id="add_source_z_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
+                                                        dcc.Input(id="add_source_z_coordinate", type="number", min=0, step=0.001, value=0),
                                                         html.Button("Add source", id="add_source", n_clicks=0, disabled=False),
                                                         dcc.ConfirmDialog(id="sources_with_overlapping_coordinates", message="Can't add source because of overlapping coordinates")
                                                     ]),
