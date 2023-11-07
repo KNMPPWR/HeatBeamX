@@ -104,11 +104,11 @@ app.layout = html.Div([
                                             html.Div(id="add_source_position_parameters", style={"display":"block"},
                                                     children=[                                            
                                                         html.Label("X (mm): ", htmlFor="add_source_x_coordinate"),
-                                                        dcc.Input(id="add_source_x_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="add_source_x_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
                                                         html.Label("Y (mm): ", htmlFor="add_source_y_coordinate"),
-                                                        dcc.Input(id="add_source_y_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="add_source_y_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
                                                         html.Label("Z (mm): ", htmlFor="add_source_z_coordinate"),
-                                                        dcc.Input(id="add_source_z_coordinate", type="number", min=0, step=0.001, value=0),
+                                                        dcc.Input(id="add_source_z_coordinate", type="number", min=0, step=0.001, value=0, debounce=True),
                                                         html.Button("Add source", id="add_source", n_clicks=0, disabled=False),
                                                         dcc.ConfirmDialog(id="sources_with_overlapping_coordinates", message="Can't add source because of overlapping coordinates")
                                                     ]),
@@ -117,11 +117,11 @@ app.layout = html.Div([
                                                         html.Label("Primary source: ", htmlFor="primary_source"), 
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="primary_source_x_coordinate"),
-                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session', persisted_props=['value']),
+                                                        dcc.Input(id="primary_source_x_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Y (mm): ", htmlFor="primary_source_y_coordinate"),
-                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session'),
+                                                        dcc.Input(id="primary_source_y_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Z (mm): ", htmlFor="primary_source_z_coordinate"),
-                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001,persistence = True, persistence_type = 'session'),
+                                                        dcc.Input(id="primary_source_z_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         dcc.ConfirmDialog(id="primary_source_coordinates_overlap", message="Primary source can't overlap with another source")
                                                     ]),
                                             html.Div(id="secondary_source_position_parameters", style={"display":"none"},
@@ -129,11 +129,11 @@ app.layout = html.Div([
                                                         html.Label("Secondary source: ", htmlFor="secondary_source"),
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="secondary_source_x_coordinate"),
-                                                        dcc.Input(id="secondary_source_x_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="secondary_source_x_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Y (mm): ", htmlFor="secondary_source_y_coordinate"),
-                                                        dcc.Input(id="secondary_source_y_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="secondary_source_y_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Z (mm): ", htmlFor="secondary_source_z_coordinate"),
-                                                        dcc.Input(id="secondary_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="secondary_source_z_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         dcc.ConfirmDialog(id="secondary_source_coordinates_overlap", message="Secondary source can't overlap with another source")
                                                     ]),
                                             html.Div(id="third_source_position_parameters", style={"display":"none"},
@@ -141,11 +141,11 @@ app.layout = html.Div([
                                                         html.Label("Third source: ", htmlFor="third_source"),
                                                         html.Br(),
                                                         html.Label("X (mm): ", htmlFor="third_source_x_coordinate"),
-                                                        dcc.Input(id="third_source_x_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="third_source_x_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Y (mm): ", htmlFor="third_source_y_coordinate"),
-                                                        dcc.Input(id="third_source_y_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="third_source_y_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         html.Label("Z (mm): ", htmlFor="third_source_z_coordinate"),
-                                                        dcc.Input(id="third_source_z_coordinate", type="number", min=0, step=0.001),
+                                                        dcc.Input(id="third_source_z_coordinate", type="number", min=0, step=0.001, debounce=True),
                                                         dcc.ConfirmDialog(id="third_source_coordinates_overlap", message="Third source can't overlap with another source")
                                                     ]),
                                             html.Button("Remove last source", id="remove_source", n_clicks=0, disabled=True),
@@ -285,8 +285,11 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     warning1=False,warning2=False,warning3=False,
                     new_warning=False)
         elif len(sources_coordinates)==2:
+            print("len2")
+            print([x,y,z], sources_coordinates[1])
             #Checking if changed position isn't overlapping with already existing ones    
-            if [x,y,z] in sources_coordinates[1]:
+            if [x,y,z] == sources_coordinates[1]:
+                print("1 as 2")
                 #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=sources_coordinates[0][0], y1_out=sources_coordinates[0][1], z1_out=sources_coordinates[0][2],
@@ -339,7 +342,7 @@ def update_source_postions(sources_coordinates_input,sources_display_input,x1_in
                     new_warning=False)
         elif len(sources_coordinates)==2:
             #Checking if changed position isn't overlapping with already existing ones
-            if [x,y,z] in sources_coordinates[0]:
+            if [x,y,z] == sources_coordinates[0]:
                 #Prevent change and raise warning about overlapping positions
                 return dict(sources_coordinates_output=sources_coordinates,sources_display_output=sources_display,
                     x1_out=x1_in, y1_out=y1_in, z1_out=z1_in,
