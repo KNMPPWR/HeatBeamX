@@ -1,0 +1,148 @@
+{
+  "tissue": {
+    "ranges": {
+      "wave_length": {
+        "min": 1,
+        "max": 1000,
+        "step": 1
+      },
+      "native_refractive_index": {
+        "min": 0.001,
+        "max": 2.0,
+        "step": 0.001
+      },
+      "native_absorption": {
+        "min": 0.001,
+        "max": 1.0,
+        "step": 0.001
+      },
+      "native_scattering": {
+        "min": 1.0,
+        "max": 40.0,
+        "step": 0.1
+      },
+      "native_g_factor": {
+        "min": 0.001,
+        "max": 1.0,
+        "step": 0.001
+      },
+      "coagulated_refractive_index": {
+        "min": 0.001,
+        "max": 2.0,
+        "step": 0.001
+      },
+      "coagulated_absorption": {
+        "min": 0.001,
+        "max": 1.0,
+        "step": 0.001
+      },
+      "coagulated_scattering": {
+        "min": 1.0,
+        "max": 40.0,
+        "step": 0.1
+      },
+      "coagulated_g_factor": {
+        "min": 0.001,
+        "max": 1.0,
+        "step": 0.001
+      },
+      "initial_temperature": {
+        "min": 30.0,
+        "max": 40.0,
+        "step": 0.1
+      },
+      "blood_perfusion": {
+        "min": 0.01,
+        "max": 1.0,
+        "step": 0.01
+      },
+      "water_content": {
+        "min": 50,
+        "max": 100,
+        "step": 0.1
+      },
+      "heat_conductivity": {
+        "min": 0.0001,
+        "max": 0.01,
+        "step": 0.0001
+      },
+      "heat_capacity": {
+        "min": 3.0,
+        "max": 4.0,
+        "step": 0.0001
+      },
+      "density": {
+        "min": 0.9,
+        "max": 1.5,
+        "step": 0.001
+      },
+      "damage_threshold": {
+        "min": 0.1,
+        "max": 1.0,
+        "step": 0.01
+      },
+      "activation_energy": {
+        "min": 6e5,
+        "max": 7.5e5,
+        "step": 1e4
+      },
+      "rate_parameter": {
+        "min": 8e104,
+        "max": 10e104,
+        "step": 0.01e104
+      }
+    },
+    "values": {
+      "name": "Liver",
+      "wave_length": 850,
+      "native_refractive_index": 1.36,
+      "native_absorption": 0.098,
+      "native_scattering": 20.2,
+      "native_g_factor": 0.949,
+      "coagulated_refractive_index": 1.36,
+      "coagulated_absorption": 0.071,
+      "coagulated_scattering": 23.9,
+      "coagulated_g_factor": 0.882,
+      "initial_temperature": 35,
+      "blood_perfusion": 0.5,
+      "water_content": 69,
+      "heat_conductivity": 0.0045,
+      "heat_capacity": 3.3197,
+      "density": 1.093,
+      "damage_threshold": 0.6,
+      "activation_energy": 670000,
+      "rate_parameter": 9.4e+104
+    }
+  },
+  "roi": {
+    "ranges": {
+      "voxel_dimension": {
+        "min": 0.001,
+        "max": 10.0,
+        "step": 0.001
+      },
+      "no_of_voxels_in_x_direction": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      "no_of_voxels_in_y_direction": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      "no_of_voxels_in_z_direction": {
+        "min": 1,
+        "max": 100,
+        "step": 1
+      }
+    },
+    "values": {
+      "voxel_dimension": 1,
+      "no_of_voxels_in_x_direction": 50,
+      "no_of_voxels_in_y_direction": 50,
+      "no_of_voxels_in_z_direction": 50
+    }
+  },
+  "laser": {}
+}
