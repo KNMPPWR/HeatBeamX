@@ -144,5 +144,11 @@
       "no_of_voxels_in_z_direction": 50
     }
   },
-  "laser": {}
+  "laser": {
+    "ranges": {
+
+    },
+    "values": {
+    }
+  }
 }

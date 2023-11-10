@@ -1,9 +1,12 @@
-from dash import html, dcc, ctx, callback, Input, Output
+from dash import html, dcc, ctx, callback, Input, Output, State, MATCH, ALL
 import json
 
+from config import UINT, FLOAT
 from models.ROIModel import ROIModel
 from models.TissueModel import TissueModel
-from views.utils import validate_input, format_bytes_number, get_tissues_names, get_tissue_by_name
+from models.LaserModel import LaserModel, LaserApplicatorType
+from views.utils import validate_input, check_if_laser_position_is_available, format_bytes_number, \
+    get_tissues_names, get_tissue_by_name, get_laser_model_by_index
 
 with open("assets/default-settings.json") as default_setting_json:
     default_setting = json.load(default_setting_json)
@@ -17,8 +20,11 @@ tissue_model = TissueModel(**default_setting["tissue"]["values"])
 roi_ranges = default_setting["roi"]["ranges"]
 roi_model = ROIModel(**default_setting["roi"]["values"])
 
+laser_ranges = default_setting["laser"]["ranges"]
+laser_models = []
 
-def create_setting_view():
+
+def create_setting_view() -> object:
     return dcc.Tab(id="settings", label="Settings",
                    children=[dcc.Tabs(id="settings_tabs", children=[create_tissue_settings(),
                                                                     create_roi_settings(),
@@ -28,7 +34,7 @@ def create_setting_view():
                    )
 
 
-def create_tissue_settings():
+def create_tissue_settings() -> object:
     return dcc.Tab(
         id="tissue_settings",
         label="Tissue",
@@ -350,7 +356,7 @@ def create_roi_settings() -> object:
                          html.Label("Number of voxels: ", htmlFor="voxels_number"),
                          dcc.Input(id="voxels_number", value=roi_model.get_voxels_number(), disabled=True),
                          html.Label("Total memory required: ", htmlFor="required_memory"),
-                         dcc.Input(id="required_memory", value=roi_model.get_required_memory(96), disabled=True)
+                         dcc.Input(id="required_memory", value=roi_model.get_required_memory(UINT(96)), disabled=True)
                      ])
         ]
     )
@@ -376,24 +382,135 @@ def roi_settings_callback(voxel_dim, no_of_voxels_in_x_dir, no_of_voxels_in_y_di
     global roi_model
 
     if validate_input(voxel_dim, roi_ranges["voxel_dimension"]):
-        roi_model.voxel_dimension = float(voxel_dim)
+        roi_model.voxel_dimension = FLOAT(voxel_dim)
 
     if validate_input(no_of_voxels_in_x_dir, roi_ranges["no_of_voxels_in_x_direction"]):
-        roi_model.no_of_voxels_in_x_direction = int(no_of_voxels_in_x_dir)
+        roi_model.no_of_voxels_in_x_direction = UINT(no_of_voxels_in_x_dir)
 
     if validate_input(no_of_voxels_in_y_dir, roi_ranges["no_of_voxels_in_y_direction"]):
-        roi_model.no_of_voxels_in_y_direction = int(no_of_voxels_in_y_dir)
+        roi_model.no_of_voxels_in_y_direction = UINT(no_of_voxels_in_y_dir)
 
     if validate_input(no_of_voxels_in_z_dir, roi_ranges["no_of_voxels_in_z_direction"]):
-        roi_model.no_of_voxels_in_z_direction = int(no_of_voxels_in_z_dir)
+        roi_model.no_of_voxels_in_z_direction = UINT(no_of_voxels_in_z_dir)
 
-    return *roi_model.get_dimension(), 96, roi_model.get_voxels_number(), format_bytes_number(
-        roi_model.get_required_memory(96)), roi_model.voxel_dimension, roi_model.no_of_voxels_in_x_direction, \
+    return *roi_model.get_dimension(), 32, roi_model.get_voxels_number(), format_bytes_number(
+        roi_model.get_required_memory(UINT(32))), roi_model.voxel_dimension, roi_model.no_of_voxels_in_x_direction, \
         roi_model.no_of_voxels_in_y_direction, roi_model.no_of_voxels_in_z_direction
 
 
-def create_laser_settings():
+def create_laser_settings() -> object:
     return dcc.Tab(
         id="laser_settings",
-        label="Laser"
-    )
+        label="Laser",
+        children=[
+            html.Label("Add new source"),
+            html.Br(),
+            html.Label("Position of applicator center (without peak): ", htmlFor="add_source_position_parameters"),
+            html.Div(id="add_source_position_parameters",
+                     children=[
+                         html.Label("X: ", htmlFor="add_source_x_coordinate"),
+                         dcc.Input(id="add_source_x_coordinate", type="number", debounce=True, min=0, step=0.001,
+                                   value=0),
+                         html.Label(" mm", htmlFor="add_source_x_coordinate"),
+                         html.Label("Y: ", htmlFor="add_source_y_coordinate"),
+                         dcc.Input(id="add_source_y_coordinate", type="number", debounce=True, min=0, step=0.001,
+                                   value=0),
+                         html.Label(" mm", htmlFor="add_source_y_coordinate"),
+                         html.Label("Z: ", htmlFor="add_source_z_coordinate"),
+                         dcc.Input(id="add_source_z_coordinate", type="number", debounce=True, min=0, step=0.001,
+                                   value=0),
+                         html.Label(" mm", htmlFor="add_source_z_coordinate"),
+                         html.Br(),
+                         html.Button("Add source", id="add_source", n_clicks=0)
+                     ]),
+            html.Label("Active sources"),
+            html.Br(),
+            html.Div(id="sources_list", children=[])
+        ])
+
+
+@callback(
+    Output("sources_list", "children"),
+    Input("add_source_x_coordinate", "value"),
+    Input("add_source_y_coordinate", "value"),
+    Input("add_source_z_coordinate", "value"),
+    Input("add_source", "n_clicks"),
+    Input({"type": "remove_source", "index": ALL}, "n_clicks"),
+    State("sources_list", "children")
+)
+def add_remove_laser_source_callback(position_x, position_y, position_z, add_clicks, remove_clicks, children):
+    global laser_models
+
+    if add_clicks is None or remove_clicks is None:
+        return children
+
+    if ctx.triggered_id is None:
+        return children
+
+    if ctx.triggered_id == "add_source":
+        if check_if_laser_position_is_available(laser_models, position_x, position_y, position_z):
+            next_laser_id = len(laser_models)
+            laser_models.append(
+                [next_laser_id, LaserModel(position_x, position_y, position_z, LaserApplicatorType.CUSTOM)])
+
+            children.append(html.Div(id=f"source{next_laser_id}", children=[
+                html.Label(f"Source {next_laser_id}:"),
+                html.Br(),
+                html.Label("X: ", htmlFor=f"source{next_laser_id}_x_coordinate"),
+                dcc.Input(id={"type": "source_x_coordinate", "index": next_laser_id}, type="number", debounce=True,
+                          value=position_x),
+                html.Label("Y: ", htmlFor=f"source{next_laser_id}_y_coordinate"),
+                dcc.Input(id={"type": "source_y_coordinate", "index": next_laser_id}, type="number", debounce=True,
+                          value=position_y),
+                html.Label("Z: ", htmlFor=f"source{next_laser_id}_z_coordinate"),
+                dcc.Input(id={"type": "source_z_coordinate", "index": next_laser_id}, type="number", debounce=True,
+                          value=position_z),
+                html.Button("Remove source", id={"type": "remove_source", "index": next_laser_id}, n_clicks=0)
+            ]))
+    elif isinstance(ctx.triggered_id, dict) and "type" in ctx.triggered_id and "index" in ctx.triggered_id and \
+            ctx.triggered_id["type"] == "remove_source":
+        index = int(ctx.triggered_id["index"])
+
+        new_laser_models = []
+        for model_index, model in laser_models:
+            if model_index != index:
+                new_laser_models.append([model_index, model])
+        laser_models = new_laser_models
+
+        new_children = []
+        for child in children:
+            if child["props"]["id"] != f"source{index}":
+                new_children.append(child)
+        children = new_children
+
+    return children
+
+
+@callback(
+    Output({"type": "source_x_coordinate", "index": MATCH}, "value"),
+    Output({"type": "source_y_coordinate", "index": MATCH}, "value"),
+    Output({"type": "source_z_coordinate", "index": MATCH}, "value"),
+    Input({"type": "source_x_coordinate", "index": MATCH}, "value"),
+    Input({"type": "source_y_coordinate", "index": MATCH}, "value"),
+    Input({"type": "source_z_coordinate", "index": MATCH}, "value"),
+    State({"type": "source_x_coordinate", "index": MATCH}, "id"),
+    State({"type": "source_y_coordinate", "index": MATCH}, "id"),
+    State({"type": "source_z_coordinate", "index": MATCH}, "id")
+)
+def laser_settings_callback(src_x_coord, src_y_coord, src_z_coord, src_x_coord_id, src_z_coord_id, src_y_coord_id):
+    index_x = src_x_coord_id["index"]
+    index_y = src_y_coord_id["index"]
+    index_z = src_z_coord_id["index"]
+
+    if validate_input(src_x_coord, {"min": 0, "max": 100, "step": 0.1}) and \
+            validate_input(src_y_coord, {"min": 0, "max": 100, "step": 0.1}) and \
+            validate_input(src_z_coord, {"min": 0, "max": 100, "step": 0.1}) and \
+            check_if_laser_position_is_available(laser_models, FLOAT(src_x_coord), FLOAT(src_y_coord),
+                                                 FLOAT(src_z_coord)):
+        get_laser_model_by_index(laser_models, index_x).position_x = FLOAT(src_x_coord)
+        get_laser_model_by_index(laser_models, index_y).position_y = FLOAT(src_y_coord)
+        get_laser_model_by_index(laser_models, index_z).position_z = FLOAT(src_z_coord)
+
+    return get_laser_model_by_index(laser_models, index_x).position_x, \
+        get_laser_model_by_index(laser_models, index_y).position_y, \
+        get_laser_model_by_index(laser_models, index_z).position_z

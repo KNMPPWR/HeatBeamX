@@ -1,10 +1,15 @@
 import json
-from typing import List
+from typing import List, Tuple
+
+import numpy as np
+
+from models.LaserModel import LaserModel
+from config import UINT, FLOAT
 
 
 def validate_input(value: any, ranges: json) -> bool:
     try:
-        float_value = float(value)
+        float_value = FLOAT(value)
     except ValueError:
         return False
     except TypeError:
@@ -16,7 +21,25 @@ def validate_input(value: any, ranges: json) -> bool:
     return int(float_value * (1.0 / ranges["step"])) * ranges["step"] == float_value
 
 
-def format_bytes_number(bytes_number: int) -> str:
+def check_if_laser_position_is_available(laser_models: List[Tuple[UINT, LaserModel]], x: FLOAT, y: FLOAT,
+                                         z: FLOAT) -> bool:
+    if x is None or y is None or z is None:
+        return False
+
+    for model_index, model in laser_models:
+        if np.isclose(model.position_x, x) and np.isclose(model.position_y, y) and np.isclose(model.position_z, z):
+            return False
+
+    return True
+
+
+def get_laser_model_by_index(laser_models: List[Tuple[UINT, LaserModel]], laser_index: UINT) -> LaserModel:
+    for index, model in laser_models:
+        if index == laser_index:
+            return model
+
+
+def format_bytes_number(bytes_number: UINT) -> str:
     if bytes_number >= 10e9:
         return "{:.2f} gigabytes".format(bytes_number / 10e9)
 

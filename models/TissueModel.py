@@ -1,26 +1,27 @@
 import json
 
+from config import FLOAT
 
 class TissueModel(object):
     def __init__(self, name: str,
-                 wave_length: float,
-                 native_refractive_index: float,
-                 native_absorption: float,
-                 native_scattering: float,
-                 native_g_factor: float,
-                 coagulated_refractive_index: float,
-                 coagulated_absorption: float,
-                 coagulated_scattering: float,
-                 coagulated_g_factor: float,
-                 initial_temperature: float,
-                 blood_perfusion: float,
-                 water_content: float,
-                 heat_conductivity: float,
-                 heat_capacity: float,
-                 density: float,
-                 damage_threshold: float,
-                 activation_energy: float,
-                 rate_parameter: float):
+                 wave_length: FLOAT,
+                 native_refractive_index: FLOAT,
+                 native_absorption: FLOAT,
+                 native_scattering: FLOAT,
+                 native_g_factor: FLOAT,
+                 coagulated_refractive_index: FLOAT,
+                 coagulated_absorption: FLOAT,
+                 coagulated_scattering: FLOAT,
+                 coagulated_g_factor: FLOAT,
+                 initial_temperature: FLOAT,
+                 blood_perfusion: FLOAT,
+                 water_content: FLOAT,
+                 heat_conductivity: FLOAT,
+                 heat_capacity: FLOAT,
+                 density: FLOAT,
+                 damage_threshold: FLOAT,
+                 activation_energy: FLOAT,
+                 rate_parameter: FLOAT):
         self.name = name
         self.wave_length = wave_length
         self.native_refractive_index = native_refractive_index
