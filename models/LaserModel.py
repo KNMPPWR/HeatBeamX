@@ -4,10 +4,10 @@ from enum import Enum
 from config import FLOAT
 
 class LaserApplicatorType(Enum):
-    HOMOGENEOUS_SCATTERING_APPLICATOR = 1,
-    DORNIER_RING_MODE_APPLICATOR = 2,
-    BARE_FIBER = 3,
-    CUSTOM = 4
+    HOMOGENEOUS_SCATTERING_APPLICATOR = "Homogeneous Scattering Applicator",
+    DORNIER_RING_MODE_APPLICATOR = "Dornier Ring Mode Applicator",
+    BARE_FIBER = "Bare Fiber",
+    CUSTOM = "Custom"
 
 
 class LaserModel(object):

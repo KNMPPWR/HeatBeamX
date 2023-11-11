@@ -14,6 +14,7 @@ with open("assets/default-settings.json") as default_setting_json:
 with open("assets/tissues.json") as tissues_json:
     tissues = json.load(tissues_json)
 
+
 def init_settings_variables():
     global tissue_ranges
     tissue_ranges = default_setting["tissue"]["ranges"]
@@ -376,6 +377,89 @@ def create_roi_settings() -> object:
                          dcc.Input(id="voxels_number", value=roi_model.get_voxels_number(), disabled=True),
                          html.Label("Total memory required: ", htmlFor="required_memory"),
                          dcc.Input(id="required_memory", value=roi_model.get_required_memory(UINT(96)), disabled=True)
+                     ]),
+            html.Br(),
+            html.Label("ROI boundaries", htmlFor="roi_boundaries"),
+            html.Div(id="roi_boundaries",
+                     children=[
+                         html.Div(id="left_bound", children=[
+                             html.Label("Left bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="left_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="left_bound_type_select",
+                                          clearable=False, value=roi_model.left_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="left_bound_fixed_temperature"),
+                             dcc.Input(id="left_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.left_bound_fixed_temperature)
+                         ]),
+                         html.Div(id="top_bound", children=[
+                             html.Label("Top bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="top_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="top_bound_type_select",
+                                          clearable=False, value=roi_model.top_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="top_bound_fixed_temperature"),
+                             dcc.Input(id="top_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.top_bound_fixed_temperature)
+                         ]),
+                         html.Div(id="back_bound", children=[
+                             html.Label("Back bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="back_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="back_bound_type_select",
+                                          clearable=False, value=roi_model.back_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="back_bound_fixed_temperature"),
+                             dcc.Input(id="back_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.back_bound_fixed_temperature)
+                         ]),
+                         html.Div(id="front_bound", children=[
+                             html.Label("Front bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="front_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="front_bound_type_select",
+                                          clearable=False, value=roi_model.front_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="front_bound_fixed_temperature"),
+                             dcc.Input(id="front_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.front_bound_fixed_temperature)
+                         ]),
+                         html.Div(id="bottom_bound", children=[
+                             html.Label("Bottom bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="bottom_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="bottom_bound_type_select",
+                                          clearable=False, value=roi_model.bottom_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="bottom_bound_fixed_temperature"),
+                             dcc.Input(id="bottom_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.bottom_bound_fixed_temperature)
+                         ]),
+                         html.Div(id="right_bound", children=[
+                             html.Label("Right bound:"),
+                             html.Br(),
+                             html.Label("Bound type:", htmlFor="right_bound_type_select"),
+                             dcc.Dropdown(list(roi_ranges["bound_type"]), id="right_bound_type_select",
+                                          clearable=False, value=roi_model.right_bound_type),
+                             html.Label("Fixed temperature:", htmlFor="right_bound_fixed_temperature"),
+                             dcc.Input(id="right_bound_fixed_temperature", type="number", debounce=True,
+                                       min=roi_ranges["bound_fixed_temperature"]["min"],
+                                       max=roi_ranges["bound_fixed_temperature"]["max"],
+                                       step=roi_ranges["bound_fixed_temperature"]["step"],
+                                       value=roi_model.right_bound_fixed_temperature)
+                         ])
                      ])
         ]
     )
@@ -392,12 +476,33 @@ def create_roi_settings() -> object:
     Output("no_of_voxels_in_x_direction", "value"),
     Output("no_of_voxels_in_y_direction", "value"),
     Output("no_of_voxels_in_z_direction", "value"),
+    Output("left_bound_fixed_temperature", "value"),
+    Output("top_bound_fixed_temperature", "value"),
+    Output("back_bound_fixed_temperature", "value"),
+    Output("front_bound_fixed_temperature", "value"),
+    Output("bottom_bound_fixed_temperature", "value"),
+    Output("right_bound_fixed_temperature", "value"),
     Input("voxel_dimension_input", "value"),
     Input("no_of_voxels_in_x_direction", "value"),
     Input("no_of_voxels_in_y_direction", "value"),
     Input("no_of_voxels_in_z_direction", "value"),
+    Input("left_bound_type_select", "value"),
+    Input("left_bound_fixed_temperature", "value"),
+    Input("top_bound_type_select", "value"),
+    Input("top_bound_fixed_temperature", "value"),
+    Input("back_bound_type_select", "value"),
+    Input("back_bound_fixed_temperature", "value"),
+    Input("front_bound_type_select", "value"),
+    Input("front_bound_fixed_temperature", "value"),
+    Input("bottom_bound_type_select", "value"),
+    Input("bottom_bound_fixed_temperature", "value"),
+    Input("right_bound_type_select", "value"),
+    Input("right_bound_fixed_temperature", "value")
 )
-def roi_settings_callback(voxel_dim, no_of_voxels_in_x_dir, no_of_voxels_in_y_dir, no_of_voxels_in_z_dir):
+def roi_settings_callback(voxel_dim, no_of_voxels_in_x_dir, no_of_voxels_in_y_dir, no_of_voxels_in_z_dir,
+                          left_bound_type, left_bound_temp, top_bound_type, top_bound_temp,
+                          back_bound_type, back_bound_temp, front_bound_type, front_bound_temp,
+                          bottom_bound_type, bottom_bound_temp, right_bound_type, right_bound_temp):
     global roi_model
 
     if validate_input(voxel_dim, roi_ranges["voxel_dimension"]):
@@ -412,9 +517,41 @@ def roi_settings_callback(voxel_dim, no_of_voxels_in_x_dir, no_of_voxels_in_y_di
     if validate_input(no_of_voxels_in_z_dir, roi_ranges["no_of_voxels_in_z_direction"]):
         roi_model.no_of_voxels_in_z_direction = UINT(no_of_voxels_in_z_dir)
 
-    return *roi_model.get_dimension(), 32, roi_model.get_voxels_number(), format_bytes_number(
-        roi_model.get_required_memory(UINT(32))), roi_model.voxel_dimension, roi_model.no_of_voxels_in_x_direction, \
-        roi_model.no_of_voxels_in_y_direction, roi_model.no_of_voxels_in_z_direction
+    if validate_input(left_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.left_bound_fixed_temperature = FLOAT(left_bound_temp)
+
+    roi_model.left_bound_type = left_bound_type
+
+    if validate_input(top_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.top_bound_fixed_temperature = FLOAT(top_bound_temp)
+
+    roi_model.top_bound_type = top_bound_type
+
+    if validate_input(back_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.back_bound_fixed_temperature = FLOAT(back_bound_temp)
+
+    roi_model.back_bound_type = back_bound_type
+
+    if validate_input(front_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.front_bound_fixed_temperature = FLOAT(front_bound_temp)
+
+    roi_model.front_bound_type = front_bound_type
+
+    if validate_input(bottom_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.bottom_bound_fixed_temperature = FLOAT(bottom_bound_temp)
+
+    roi_model.bottom_bound_type = bottom_bound_type
+
+    if validate_input(right_bound_temp, roi_ranges["bound_fixed_temperature"]):
+        roi_model.right_bound_fixed_temperature = FLOAT(right_bound_temp)
+
+    roi_model.right_bound_type = right_bound_type
+
+    return *roi_model.get_dimension(), 32, roi_model.get_voxels_number(), \
+        format_bytes_number(roi_model.get_required_memory(UINT(32))), roi_model.voxel_dimension, \
+        roi_model.no_of_voxels_in_x_direction, roi_model.no_of_voxels_in_y_direction, roi_model.no_of_voxels_in_z_direction, \
+        roi_model.left_bound_fixed_temperature, roi_model.top_bound_fixed_temperature, roi_model.back_bound_fixed_temperature, \
+        roi_model.front_bound_fixed_temperature, roi_model.bottom_bound_fixed_temperature, roi_model.right_bound_fixed_temperature
 
 
 def create_laser_settings() -> object:

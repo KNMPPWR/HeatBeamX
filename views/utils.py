@@ -18,7 +18,7 @@ def validate_input(value: any, ranges: json) -> bool:
     if not ranges["min"] <= float_value <= ranges["max"]:
         return False
 
-    return int(float_value * (1.0 / ranges["step"])) * ranges["step"] == float_value
+    return np.isclose(float_value / ranges["step"], round(float_value / ranges["step"]))
 
 
 def check_if_laser_position_is_available(laser_models: List[Tuple[UINT, LaserModel]], x: FLOAT, y: FLOAT,
