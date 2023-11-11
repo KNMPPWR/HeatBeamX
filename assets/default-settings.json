@@ -146,9 +146,13 @@
   },
   "laser": {
     "ranges": {
-
+      "position": {
+        "min": 0,
+        "step": 0.001
+      }
     },
     "values": {
+      "position": 0
     }
   }
 }

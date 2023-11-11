@@ -14,14 +14,33 @@ with open("assets/default-settings.json") as default_setting_json:
 with open("assets/tissues.json") as tissues_json:
     tissues = json.load(tissues_json)
 
-tissue_ranges = default_setting["tissue"]["ranges"]
-tissue_model = TissueModel(**default_setting["tissue"]["values"])
+def init_settings_variables():
+    global tissue_ranges
+    tissue_ranges = default_setting["tissue"]["ranges"]
 
-roi_ranges = default_setting["roi"]["ranges"]
-roi_model = ROIModel(**default_setting["roi"]["values"])
+    global tissue_model
+    tissue_model = TissueModel(**default_setting["tissue"]["values"])
 
-laser_ranges = default_setting["laser"]["ranges"]
-laser_models = []
+    global roi_ranges
+    roi_ranges = default_setting["roi"]["ranges"]
+
+    global roi_model
+    roi_model = ROIModel(**default_setting["roi"]["values"])
+
+    global laser_ranges
+    laser_ranges = default_setting["laser"]["ranges"]
+
+    global laser_defaults
+    laser_defaults = default_setting["laser"]["values"]
+
+    global base_laser_model
+    base_laser_model = LaserModel(laser_defaults["position"], laser_defaults["position"], laser_defaults["position"],
+                                  LaserApplicatorType.CUSTOM)
+    global laser_models
+    laser_models = []
+
+    global laser_models_counter
+    laser_models_counter = 0
 
 
 def create_setting_view() -> object:
@@ -409,16 +428,25 @@ def create_laser_settings() -> object:
             html.Div(id="add_source_position_parameters",
                      children=[
                          html.Label("X: ", htmlFor="add_source_x_coordinate"),
-                         dcc.Input(id="add_source_x_coordinate", type="number", debounce=True, min=0, step=0.001,
-                                   value=0),
+                         dcc.Input(id="add_source_x_coordinate", type="number", debounce=True,
+                                   min=laser_ranges["position"]["min"],
+                                   max=roi_model.get_dimension()[0],
+                                   step=laser_ranges["position"]["step"],
+                                   value=laser_defaults["position"]),
                          html.Label(" mm", htmlFor="add_source_x_coordinate"),
                          html.Label("Y: ", htmlFor="add_source_y_coordinate"),
-                         dcc.Input(id="add_source_y_coordinate", type="number", debounce=True, min=0, step=0.001,
-                                   value=0),
+                         dcc.Input(id="add_source_y_coordinate", type="number", debounce=True,
+                                   min=laser_ranges["position"]["min"],
+                                   max=roi_model.get_dimension()[1],
+                                   step=laser_ranges["position"]["step"],
+                                   value=laser_defaults["position"]),
                          html.Label(" mm", htmlFor="add_source_y_coordinate"),
                          html.Label("Z: ", htmlFor="add_source_z_coordinate"),
-                         dcc.Input(id="add_source_z_coordinate", type="number", debounce=True, min=0, step=0.001,
-                                   value=0),
+                         dcc.Input(id="add_source_z_coordinate", type="number", debounce=True,
+                                   min=laser_ranges["position"]["min"],
+                                   max=roi_model.get_dimension()[2],
+                                   step=laser_ranges["position"]["step"],
+                                   value=laser_defaults["position"]),
                          html.Label(" mm", htmlFor="add_source_z_coordinate"),
                          html.Br(),
                          html.Button("Add source", id="add_source", n_clicks=0)
@@ -430,6 +458,48 @@ def create_laser_settings() -> object:
 
 
 @callback(
+    Output("add_source_x_coordinate", "max"),
+    Output("add_source_y_coordinate", "max"),
+    Output("add_source_z_coordinate", "max"),
+    Input("dimension_x", "value"),
+    Input("dimension_y", "value"),
+    Input("dimension_z", "value"),
+)
+def new_source_position_ranges_callback(dim_x, dim_y, dim_z):
+    return dim_x, dim_y, dim_z
+
+
+@callback(
+    Output("add_source_x_coordinate", "value"),
+    Output("add_source_y_coordinate", "value"),
+    Output("add_source_z_coordinate", "value"),
+    Input("add_source_x_coordinate", "value"),
+    Input("add_source_y_coordinate", "value"),
+    Input("add_source_z_coordinate", "value"),
+    Input("dimension_x", "value"),
+    Input("dimension_y", "value"),
+    Input("dimension_z", "value"),
+)
+def new_source_position_callback(pos_x, pos_y, pos_z, dim_x, dim_y, dim_z):
+    if validate_input(pos_x, {**laser_ranges["position"], "max": dim_x}):
+        base_laser_model.position_x = pos_x
+    else:
+        base_laser_model.position_x = min(base_laser_model.position_x, dim_x)
+
+    if validate_input(pos_y, {**laser_ranges["position"], "max": dim_y}):
+        base_laser_model.position_y = pos_y
+    else:
+        base_laser_model.position_y = min(base_laser_model.position_y, dim_y)
+
+    if validate_input(pos_z, {**laser_ranges["position"], "max": dim_z}):
+        base_laser_model.position_z = pos_z
+    else:
+        base_laser_model.position_z = min(base_laser_model.position_z, dim_z)
+
+    return base_laser_model.position_x, base_laser_model.position_y, base_laser_model.position_z
+
+
+@callback(
     Output("sources_list", "children"),
     Input("add_source_x_coordinate", "value"),
     Input("add_source_y_coordinate", "value"),
@@ -438,34 +508,44 @@ def create_laser_settings() -> object:
     Input({"type": "remove_source", "index": ALL}, "n_clicks"),
     State("sources_list", "children")
 )
-def add_remove_laser_source_callback(position_x, position_y, position_z, add_clicks, remove_clicks, children):
+def add_remove_laser_source_callback(pos_x, pos_y, pos_z, add_clicks, remove_clicks, children):
     global laser_models
+    global laser_models_counter
 
-    if add_clicks is None or remove_clicks is None:
-        return children
-
-    if ctx.triggered_id is None:
+    if add_clicks is None or remove_clicks is None or ctx.triggered_id is None:
         return children
 
     if ctx.triggered_id == "add_source":
-        if check_if_laser_position_is_available(laser_models, position_x, position_y, position_z):
-            next_laser_id = len(laser_models)
+        if check_if_laser_position_is_available(laser_models, pos_x, pos_y, pos_z):
+            laser_models_counter += 1
             laser_models.append(
-                [next_laser_id, LaserModel(position_x, position_y, position_z, LaserApplicatorType.CUSTOM)])
+                [laser_models_counter, LaserModel(pos_x, pos_y, pos_z, LaserApplicatorType.CUSTOM)])
 
-            children.append(html.Div(id=f"source{next_laser_id}", children=[
-                html.Label(f"Source {next_laser_id}:"),
+            children.append(html.Div(id=f"source{laser_models_counter}", children=[
+                html.Label(f"Source {laser_models_counter}:"),
                 html.Br(),
-                html.Label("X: ", htmlFor=f"source{next_laser_id}_x_coordinate"),
-                dcc.Input(id={"type": "source_x_coordinate", "index": next_laser_id}, type="number", debounce=True,
-                          value=position_x),
-                html.Label("Y: ", htmlFor=f"source{next_laser_id}_y_coordinate"),
-                dcc.Input(id={"type": "source_y_coordinate", "index": next_laser_id}, type="number", debounce=True,
-                          value=position_y),
-                html.Label("Z: ", htmlFor=f"source{next_laser_id}_z_coordinate"),
-                dcc.Input(id={"type": "source_z_coordinate", "index": next_laser_id}, type="number", debounce=True,
-                          value=position_z),
-                html.Button("Remove source", id={"type": "remove_source", "index": next_laser_id}, n_clicks=0)
+                html.Label("X: ", htmlFor=f"source{laser_models_counter}_x_coordinate"),
+                dcc.Input(id={"type": "source_x_coordinate", "index": laser_models_counter},
+                          type="number", debounce=True,
+                          min=laser_ranges["position"]["min"],
+                          max=roi_model.get_dimension()[0],
+                          step=laser_ranges["position"]["step"],
+                          value=pos_x),
+                html.Label("Y: ", htmlFor=f"source{laser_models_counter}_y_coordinate"),
+                dcc.Input(id={"type": "source_y_coordinate", "index": laser_models_counter},
+                          type="number", debounce=True,
+                          min=laser_ranges["position"]["min"],
+                          max=roi_model.get_dimension()[1],
+                          step=laser_ranges["position"]["step"],
+                          value=pos_y),
+                html.Label("Z: ", htmlFor=f"source{laser_models_counter}_z_coordinate"),
+                dcc.Input(id={"type": "source_z_coordinate", "index": laser_models_counter},
+                          type="number", debounce=True,
+                          min=laser_ranges["position"]["min"],
+                          max=roi_model.get_dimension()[2],
+                          step=laser_ranges["position"]["step"],
+                          value=pos_z),
+                html.Button("Remove source", id={"type": "remove_source", "index": laser_models_counter}, n_clicks=0)
             ]))
     elif isinstance(ctx.triggered_id, dict) and "type" in ctx.triggered_id and "index" in ctx.triggered_id and \
             ctx.triggered_id["type"] == "remove_source":
@@ -493,23 +573,42 @@ def add_remove_laser_source_callback(position_x, position_y, position_z, add_cli
     Input({"type": "source_x_coordinate", "index": MATCH}, "value"),
     Input({"type": "source_y_coordinate", "index": MATCH}, "value"),
     Input({"type": "source_z_coordinate", "index": MATCH}, "value"),
+    Input("dimension_x", "value"),
+    Input("dimension_y", "value"),
+    Input("dimension_z", "value"),
     State({"type": "source_x_coordinate", "index": MATCH}, "id"),
     State({"type": "source_y_coordinate", "index": MATCH}, "id"),
     State({"type": "source_z_coordinate", "index": MATCH}, "id")
 )
-def laser_settings_callback(src_x_coord, src_y_coord, src_z_coord, src_x_coord_id, src_z_coord_id, src_y_coord_id):
-    index_x = src_x_coord_id["index"]
-    index_y = src_y_coord_id["index"]
-    index_z = src_z_coord_id["index"]
+def laser_settings_callback(pos_x, pos_y, pos_z, dim_x, dim_y, dim_z,
+                            pos_x_id, pos_y_id, pos_z_id):
+    index_x = pos_x_id["index"]
+    index_y = pos_y_id["index"]
+    index_z = pos_z_id["index"]
 
-    if validate_input(src_x_coord, {"min": 0, "max": 100, "step": 0.1}) and \
-            validate_input(src_y_coord, {"min": 0, "max": 100, "step": 0.1}) and \
-            validate_input(src_z_coord, {"min": 0, "max": 100, "step": 0.1}) and \
-            check_if_laser_position_is_available(laser_models, FLOAT(src_x_coord), FLOAT(src_y_coord),
-                                                 FLOAT(src_z_coord)):
-        get_laser_model_by_index(laser_models, index_x).position_x = FLOAT(src_x_coord)
-        get_laser_model_by_index(laser_models, index_y).position_y = FLOAT(src_y_coord)
-        get_laser_model_by_index(laser_models, index_z).position_z = FLOAT(src_z_coord)
+    if validate_input(pos_x, {**laser_ranges["position"], "max": dim_x}) and \
+            check_if_laser_position_is_available(laser_models, FLOAT(pos_x), FLOAT(pos_y), FLOAT(pos_z)):
+        get_laser_model_by_index(laser_models, index_x).position_x = FLOAT(pos_x)
+    elif dim_x < get_laser_model_by_index(laser_models, index_x).position_x:
+        old_x_value = get_laser_model_by_index(laser_models, index_x).position_x
+        new_x_value = dim_x - index_x * laser_ranges["position"]["step"]
+        get_laser_model_by_index(laser_models, index_x).position_x = min(old_x_value, new_x_value)
+
+    if validate_input(pos_y, {**laser_ranges["position"], "max": dim_y}) and \
+            check_if_laser_position_is_available(laser_models, FLOAT(pos_x), FLOAT(pos_y), FLOAT(pos_z)):
+        get_laser_model_by_index(laser_models, index_y).position_y = FLOAT(pos_y)
+    elif dim_y < get_laser_model_by_index(laser_models, index_y).position_y:
+        old_y_value = get_laser_model_by_index(laser_models, index_y).position_y
+        new_y_value = dim_y - index_y * laser_ranges["position"]["step"]
+        get_laser_model_by_index(laser_models, index_y).position_y = min(old_y_value, new_y_value)
+
+    if validate_input(pos_z, {**laser_ranges["position"], "max": dim_z}) and \
+            check_if_laser_position_is_available(laser_models, FLOAT(pos_x), FLOAT(pos_y), FLOAT(pos_z)):
+        get_laser_model_by_index(laser_models, index_z).position_z = FLOAT(pos_z)
+    elif dim_z < get_laser_model_by_index(laser_models, index_z).position_z:
+        old_z_value = get_laser_model_by_index(laser_models, index_z).position_z
+        new_z_value = dim_z - index_z * laser_ranges["position"]["step"]
+        get_laser_model_by_index(laser_models, index_z).position_z = min(old_z_value, new_z_value)
 
     return get_laser_model_by_index(laser_models, index_x).position_x, \
         get_laser_model_by_index(laser_models, index_y).position_y, \
