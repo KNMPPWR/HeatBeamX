@@ -145,9 +145,9 @@
     },
     "values": {
       "voxel_dimension": 1,
-      "no_of_voxels_in_x_direction": 50,
-      "no_of_voxels_in_y_direction": 50,
-      "no_of_voxels_in_z_direction": 50,
+      "no_of_voxels_in_x_direction": 30,
+      "no_of_voxels_in_y_direction": 35,
+      "no_of_voxels_in_z_direction": 27,
       "left_bound_type": "Open",
       "left_bound_fixed_temperature": 0.0,
       "top_bound_type": "Open",
@@ -170,7 +170,19 @@
       }
     },
     "values": {
-      "position": 0
+      "position_x": 0,
+      "position_y": 0,
+      "position_z": 0,
+      "applicator_type": "Custom"
+    }
+  },
+  "simulation": {
+    "ranges": {
+
+    },
+    "values": {
+      "time_interval": 1.0,
+      "total_time": 120.0
     }
   }
 }

@@ -1,7 +1,10 @@
 import json
+import numpy as np
 from enum import Enum
 
-from config import FLOAT
+UINT = np.uint32
+FLOAT = np.float64
+
 
 class LaserApplicatorType(Enum):
     HOMOGENEOUS_SCATTERING_APPLICATOR = "Homogeneous Scattering Applicator",

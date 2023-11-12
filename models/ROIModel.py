@@ -1,7 +1,9 @@
 import json
+import numpy as np
 from enum import Enum
 
-from config import UINT, FLOAT
+UINT = np.uint32
+FLOAT = np.float64
 
 
 class ROIBoundType(Enum):

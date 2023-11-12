@@ -1,6 +1,9 @@
 import json
+import numpy as np
 
-from config import FLOAT
+UINT = np.uint32
+FLOAT = np.float64
+
 
 class TissueModel(object):
     def __init__(self, name: str,
