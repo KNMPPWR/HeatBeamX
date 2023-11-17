@@ -7,9 +7,9 @@ FLOAT = np.float64
 
 
 class LaserApplicatorType(Enum):
-    HOMOGENEOUS_SCATTERING_APPLICATOR = "Homogeneous Scattering Applicator",
-    DORNIER_RING_MODE_APPLICATOR = "Dornier Ring Mode Applicator",
-    BARE_FIBER = "Bare Fiber",
+    HOMOGENEOUS_SCATTERING_APPLICATOR = "Homogeneous Scattering Applicator"
+    DORNIER_RING_MODE_APPLICATOR = "Dornier Ring Mode Applicator"
+    BARE_FIBER = "Bare Fiber"
     CUSTOM = "Custom"
 
 
