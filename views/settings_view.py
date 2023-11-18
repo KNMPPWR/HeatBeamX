@@ -526,9 +526,11 @@ def create_laser_settings(app_model: AppDataModel) -> object:
             html.Label("Power parameters", htmlFor="source_power_parameters"),
             html.Div(id="source_power_parameters",
                      children=[
-                         dcc.RadioItems(("Fixed power", "Powermode"), value="Fixed power"),
+                         dcc.RadioItems(("Fixed power", "Powermode"), id="source_power_parameters_select", value="Fixed power"),
+                         html.Div(id="source_power_list", children=[]),
+                         html.Br(),
                          dcc.Checklist(["Cooled catheter"], value=["Cooled catheter"]),
-                         html.Label("Temperature ", htmlFor="source_cooled_temperature"),
+                         html.Label("Temperature: ", htmlFor="source_cooled_temperature"),
                          dcc.Input(id="source_cooled_temperature", type="number", debounce=True),
                          html.Label(" ^C", htmlFor="source_cooled_temperature")
                      ]),
@@ -536,7 +538,7 @@ def create_laser_settings(app_model: AppDataModel) -> object:
             html.Label("Timing parameters", htmlFor="source_timing_parameters"),
             html.Div(id="source_timing_parameters",
                      children=[
-                         html.Label("Delay before energy will be activated ", htmlFor="source_delay"),
+                         html.Label("Delay before energy will be activated: ", htmlFor="source_delay"),
                          dcc.Input(id="source_delay", type="number", debounce=True,
                                    min=UINT(0),
                                    step=FLOAT(0.000001),
@@ -544,15 +546,61 @@ def create_laser_settings(app_model: AppDataModel) -> object:
                          html.Label(" s", htmlFor="source_delay"),
                          html.Div(id="source_application_of_energy",
                                   children=[
-                                      html.Label("Application of energy", htmlFor="source_delay"),
-                                      dcc.RadioItems(("Continuous wave", "Pulsed"), value="Continuous wave"),
+                                      html.Label("Application of energy:", htmlFor="source_application_of_energy"),
+                                      dcc.RadioItems(("Continuous wave", "Pulsed"), id="source_application_of_energy_select", value="Continuous wave"),
+                                      html.Label("on: ", htmlFor="source_on_pulse"),
+                                      dcc.Input(id="source_on_pulse", debounce=True, disabled=True,
+                                                min=UINT(0),
+                                                step=FLOAT(0.000001),
+                                                value=UINT(1)),
+                                      html.Label(" s", htmlFor="source_on_pulse"),
+                                      html.Label("off: ", htmlFor="source_off_pulse"),
+                                      dcc.Input(id="source_off_pulse", debounce=True, disabled=True,
+                                                min=UINT(0),
+                                                step=FLOAT(0.000001),
+                                                value=UINT(1)),
+                                      html.Label(" s", htmlFor="source_off_pulse")
                                   ]),
-                         html.Label("Total interval energy will be applied ", htmlFor="source_total_interval"),
+                         html.Label("Total interval energy will be applied: ", htmlFor="source_total_interval"),
                          dcc.Input(id="source_total_interval", type="number", debounce=True, 
                                    min=UINT(0),
                                    step=FLOAT(0.000001),
                                    value=UINT(600)),
                          html.Label(" s", htmlFor="source_total_interval")
+                     ]),
+            html.Br(),
+            html.Label("Characteristics", htmlFor="source_characteristics_parameters"),
+            html.Div(id="source_characteristics_parameters",
+                     children=[
+                         html.Label("Actual geometric parameters scattering applicator:", htmlFor="source_geometric_parameters"),
+                         html.Div(id="source_geometric_parameters",
+                                  children=[
+                                      html.Label("Diameter: ", htmlFor="source_diameter"),
+                                      dcc.Input(id="source_diameter", type="number", debounce=True),
+                                      html.Label(" mm", htmlFor="source_diameter"),
+                                      html.Label("Active length: ", htmlFor="source_active_length"),
+                                      dcc.Input(id="source_active_length", type="number", debounce=True),
+                                      html.Label(" mm", htmlFor="source_active_length"),
+                                      html.Label("Peak length: ", htmlFor="source_peak_length"),
+                                      dcc.Input(id="source_peak_length", type="number", debounce=True),
+                                      html.Label(" mm", htmlFor="source_peak_length")
+                                  ]),
+                         html.Label("Actual radiation parameters scattering applicator:", htmlFor="source_radiation_parameters"),
+                         html.Div(id="source_radiation_parameters",
+                                  children=[
+                                      html.Label("Primary direction: ", htmlFor="source_primary_direction"),
+                                      dcc.Input(id="source_primary_direction", type="number", debounce=True),
+                                      html.Label(" Deg. (air)", htmlFor="source_primary_direction"),
+                                      html.Label("Full opening angle: ", htmlFor="source_full_opening_angle"),
+                                      dcc.Input(id="source_full_opening_angle", type="number", debounce=True),
+                                      html.Label(" Deg. (air)", htmlFor="source_full_opening_angle"),
+                                      html.Label("Fiber Num. Aperture: ", htmlFor="source_fiber_num_aperture"),
+                                      dcc.Input(id="source_fiber_num_aperture", type="number", debounce=True),
+                                      html.Label(" NA (air)", htmlFor="source_fiber_num_aperture"),
+                                      html.Label("Forward fraction: ", htmlFor="source_forward_fraction"),
+                                      dcc.Input(id="source_forward_fraction", type="number", debounce=True),
+                                      html.Label(" %", htmlFor="source_forward_fraction")
+                                  ])
                      ]),
             html.Br(),
             html.Label("Add new source"),
@@ -588,6 +636,72 @@ def create_laser_settings(app_model: AppDataModel) -> object:
             html.Br(),
             html.Div(id="sources_list", children=[])
         ])
+
+
+@callback(
+        Output("source_power_list", "children"),
+        Input("source_power_parameters_select", "value"),
+        State("source_power_list", "children")
+)
+def change_power_parameters_inputs(type_of_power_parameter, children):
+    if type_of_power_parameter == "Fixed power":
+        children = [
+            html.Label("Power: ", htmlFor="source_fixed_power"),
+            dcc.Input(id="source_fixed_power", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=UINT(25)),
+            html.Label(" W", htmlFor="source_fixed_power")
+        ]
+    
+    elif type_of_power_parameter == "Powermode":
+        children = [
+            html.Label("Start power: ", htmlFor="source_start_power"),
+            dcc.Input(id="source_start_power", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=UINT(30)),
+            html.Label(" W", htmlFor="source_start_power"),
+            html.Label("End power: ", htmlFor="source_end_power"),
+            dcc.Input(id="source_end_power", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=UINT(5)),
+            html.Label(" W", htmlFor="source_end_power"),
+            html.Label("Start time (ts): ", htmlFor="source_start_time"),
+            dcc.Input(id="source_start_time", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=UINT(30)),
+            html.Label(" s", htmlFor="source_start_time"),
+            html.Label("End time (te): ", htmlFor="source_end_time"),
+            dcc.Input(id="source_end_time", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=UINT(300)),
+            html.Label(" s", htmlFor="source_end_time"),
+            html.Label("Exponent (k): ", htmlFor="source_exponent"),
+            dcc.Input(id="source_exponent", type="number", debounce=True,
+                      min=UINT(0),
+                      step=FLOAT(0.001),
+                      value=FLOAT(0.5)),
+            html.Label(" W", htmlFor="source_exponent")
+        ]
+
+    return children
+
+
+@callback(
+        Output("source_on_pulse", "disabled"),
+        Output("source_off_pulse", "disabled"),
+        Input("source_application_of_energy_select", "value")
+)
+def enable_source_on_off_pulse(type_of_aplication):
+    if type_of_aplication == "Continuous wave":
+        return True, True
+    
+    elif type_of_aplication == "Pulsed":
+        return False, False
 
 
 @callback(
