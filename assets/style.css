@@ -1,0 +1,50 @@
+.main_tabs{
+    text-align: center;
+    background-color: #0f2537;
+}
+.tab {
+    color: #b3d9ff84;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-top: 3px solid transparent !important;
+    border-left: 2px !important;
+    border-right: 2px !important;
+    border-bottom: 2px solid #0f2537 !important;
+    border-color: #0f2537;
+    padding: 12px !important;
+    font-family: "system-ui";
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: #071f34 !important;
+}
+.tab--selected {
+    background-color: #001a33 !important;
+    color: #b3d9ff !important;
+    box-shadow: 1px 1px 0px #0a0027;
+    border-left: 1px solid #0a0027 !important;
+    border-right: 1px solid #0a0027 !important;
+    border-top: 3px solid #0a0027 !important;
+}
+
+#tissue_select > * {
+    color: black !important;
+}
+
+.tissue_settings{
+    height: 100%;
+    width: 90%;
+    padding-top:50px;
+    padding-left:50px;
+    padding-right: 50px;
+    padding-bottom: 50px;
+    background-color: #001a33 !important;
+    justify-content: center;
+    margin:auto;
+    white-space: normal;
+}
+
+label {
+    white-space: normal;
+    display: inline-block;
+}
