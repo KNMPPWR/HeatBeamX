@@ -291,13 +291,14 @@ def create_roi_settings(app_model: AppDataModel) -> object:
         label="Region of Interest",
         className='tab',selected_className='tab--selected',
         children=[
+            html.Div(className="roi_settings", children=[
             html.Label("Voxel dimension: ", htmlFor="voxel_dimension_input"),
             dcc.Input(id="voxel_dimension_input", type="number", debounce=True,
                       min=app_model.roi_ranges["voxel_dimension"]["min"],
                       max=app_model.roi_ranges["voxel_dimension"]["max"],
                       step=app_model.roi_ranges["voxel_dimension"]["step"],
-                      value=app_model.roi.voxel_dimension),
-            html.Label(" mm: ", htmlFor="voxel_dimension_input"),
+                      value=app_model.roi.voxel_dimension, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+            html.Label(" mm", htmlFor="voxel_dimension_input"),
             html.Br(),
             html.Div(id="no_of_voxels",
                      children=[
@@ -306,42 +307,41 @@ def create_roi_settings(app_model: AppDataModel) -> object:
                                    min=app_model.roi_ranges["no_of_voxels_in_x_direction"]["min"],
                                    max=app_model.roi_ranges["no_of_voxels_in_x_direction"]["max"],
                                    step=app_model.roi_ranges["no_of_voxels_in_x_direction"]["step"],
-                                   value=app_model.roi.no_of_voxels_in_x_direction),
-                         html.Label("No. of voxels in Y-direction: ", htmlFor="no_of_voxels_in_y_direction"),
+                                   value=app_model.roi.no_of_voxels_in_x_direction, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                         html.Label("No. of voxels in Y-direction: ", htmlFor="no_of_voxels_in_y_direction", style={'margin-left':'10px'}),
                          dcc.Input(id="no_of_voxels_in_y_direction", type="number", debounce=True,
                                    min=app_model.roi_ranges["no_of_voxels_in_y_direction"]["min"],
                                    max=app_model.roi_ranges["no_of_voxels_in_y_direction"]["max"],
                                    step=app_model.roi_ranges["no_of_voxels_in_y_direction"]["step"],
-                                   value=app_model.roi.no_of_voxels_in_y_direction),
-                         html.Label("No. of voxels in Z-direction: ", htmlFor="no_of_voxels_in_z_direction"),
+                                   value=app_model.roi.no_of_voxels_in_y_direction, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                         html.Label("No. of voxels in Z-direction: ", htmlFor="no_of_voxels_in_z_direction", style={'margin-left':'10px'}),
                          dcc.Input(id="no_of_voxels_in_z_direction", type="number", debounce=True,
                                    min=app_model.roi_ranges["no_of_voxels_in_z_direction"]["min"],
                                    max=app_model.roi_ranges["no_of_voxels_in_z_direction"]["max"],
                                    step=app_model.roi_ranges["no_of_voxels_in_z_direction"]["step"],
-                                   value=app_model.roi.no_of_voxels_in_z_direction)
+                                   value=app_model.roi.no_of_voxels_in_z_direction, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                      ]),
             html.Label("Calculated dimensions of ROI", htmlFor="dim_of_roi"),
             html.Div(id="dim_of_roi",
                      children=[
                          html.Label("X: ", htmlFor="dimension_x"),
-                         dcc.Input(id="dimension_x", value=app_model.roi.get_dimension()[0], disabled=True),
-                         html.Label("Y: ", htmlFor="dimension_y"),
-                         dcc.Input(id="dimension_y", value=app_model.roi.get_dimension()[1], disabled=True),
-                         html.Label("Z:", htmlFor="dimension_z"),
-                         dcc.Input(id="dimension_z", value=app_model.roi.get_dimension()[2], disabled=True)
+                         dcc.Input(id="dimension_x", value=app_model.roi.get_dimension()[0], disabled=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                         html.Label("Y: ", htmlFor="dimension_y", style={'margin-left':'10px'}),
+                         dcc.Input(id="dimension_y", value=app_model.roi.get_dimension()[1], disabled=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                         html.Label("Z:", htmlFor="dimension_z", style={'margin-left':'10px'}),
+                         dcc.Input(id="dimension_z", value=app_model.roi.get_dimension()[2], disabled=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                      ]),
             html.Br(),
             html.Label("Memory requirements", htmlFor="memory_requirements"),
             html.Div(id="memory_requirements",
                      children=[
                          html.Label("Size of voxel: ", htmlFor="voxel_size"),
-                         dcc.Input(id="voxel_size", value=96, disabled=True),
+                         dcc.Input(id="voxel_size", value=96, disabled=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" bytes", htmlFor="voxel_size"),
-                         html.Label("Number of voxels: ", htmlFor="voxels_number"),
-                         dcc.Input(id="voxels_number", value=app_model.roi.get_voxels_number(), disabled=True),
-                         html.Label("Total memory required: ", htmlFor="required_memory"),
-                         dcc.Input(id="required_memory", value=app_model.roi.get_required_memory(UINT(96)),
-                                   disabled=True)
+                         html.Label("Number of voxels: ", htmlFor="voxels_number", style={'margin-left':'10px'}),
+                         dcc.Input(id="voxels_number", value=app_model.roi.get_voxels_number(), disabled=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                         html.Label("Total memory required: ", htmlFor="required_memory", style={'margin-left':'10px'}),
+                         dcc.Input(id="required_memory", value=app_model.roi.get_required_memory(UINT(96)), style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'},disabled=True)
                      ]),
             html.Br(),
             html.Label("ROI boundaries", htmlFor="roi_boundaries"),
@@ -351,82 +351,82 @@ def create_roi_settings(app_model: AppDataModel) -> object:
                              html.Label("Left bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="left_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="left_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="left_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.left_bound_type),
                              html.Label("Fixed temperature:", htmlFor="left_bound_fixed_temperature"),
                              dcc.Input(id="left_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.left_bound_fixed_temperature)
+                                       value=app_model.roi.left_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ]),
                          html.Div(id="top_bound", children=[
                              html.Label("Top bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="top_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="top_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="top_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.top_bound_type),
                              html.Label("Fixed temperature:", htmlFor="top_bound_fixed_temperature"),
                              dcc.Input(id="top_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.top_bound_fixed_temperature)
+                                       value=app_model.roi.top_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ]),
                          html.Div(id="back_bound", children=[
                              html.Label("Back bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="back_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="back_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="back_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.back_bound_type),
                              html.Label("Fixed temperature:", htmlFor="back_bound_fixed_temperature"),
                              dcc.Input(id="back_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.back_bound_fixed_temperature)
+                                       value=app_model.roi.back_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ]),
                          html.Div(id="front_bound", children=[
                              html.Label("Front bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="front_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="front_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="front_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.front_bound_type),
                              html.Label("Fixed temperature:", htmlFor="front_bound_fixed_temperature"),
                              dcc.Input(id="front_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.front_bound_fixed_temperature)
+                                       value=app_model.roi.front_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ]),
                          html.Div(id="bottom_bound", children=[
                              html.Label("Bottom bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="bottom_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="bottom_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="bottom_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.bottom_bound_type),
                              html.Label("Fixed temperature:", htmlFor="bottom_bound_fixed_temperature"),
                              dcc.Input(id="bottom_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.bottom_bound_fixed_temperature)
+                                       value=app_model.roi.bottom_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ]),
                          html.Div(id="right_bound", children=[
                              html.Label("Right bound:"),
                              html.Br(),
                              html.Label("Bound type:", htmlFor="right_bound_type_select"),
-                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="right_bound_type_select",
+                             dcc.Dropdown(list(app_model.roi_ranges["bound_type"]), id="right_bound_type_select", className='dropdown',
                                           clearable=False, value=app_model.roi.right_bound_type),
                              html.Label("Fixed temperature:", htmlFor="right_bound_fixed_temperature"),
                              dcc.Input(id="right_bound_fixed_temperature", type="number", debounce=True,
                                        min=app_model.roi_ranges["bound_fixed_temperature"]["min"],
                                        max=app_model.roi_ranges["bound_fixed_temperature"]["max"],
                                        step=app_model.roi_ranges["bound_fixed_temperature"]["step"],
-                                       value=app_model.roi.right_bound_fixed_temperature)
+                                       value=app_model.roi.right_bound_fixed_temperature, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'})
                          ])
                      ])
-        ]
+        ])]
     )
 
 
@@ -523,18 +523,19 @@ def create_laser_settings(app_model: AppDataModel) -> object:
         label="Laser",
         className='tab',selected_className='tab--selected',
         children=[
+            html.Div(className="laser_settings", children=[
             html.Label("Type of laser aplicator", htmlFor="type_of_laser_aplicator"),
-            dcc.Dropdown([applicator.value for applicator in LaserApplicatorType], id="type_of_laser_aplicator", value=LaserApplicatorType["HOMOGENEOUS_SCATTERING_APPLICATOR"].value),
+            dcc.Dropdown([applicator.value for applicator in LaserApplicatorType], id="type_of_laser_aplicator", value=LaserApplicatorType["HOMOGENEOUS_SCATTERING_APPLICATOR"].value, className='dropdown'),
             html.Br(),
             html.Label("Power parameters", htmlFor="source_power_parameters"),
             html.Div(id="source_power_parameters",
                      children=[
-                         dcc.RadioItems(("Fixed power", "Powermode"), id="source_power_parameters_select", value="Fixed power"),
+                         dcc.RadioItems(("Fixed power", "Powermode"), id="source_power_parameters_select", value="Fixed power", style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Div(id="source_power_list", children=[]),
                          html.Br(),
-                         dcc.Checklist(["Cooled catheter"], value=["Cooled catheter"]),
+                         dcc.Checklist(["Cooled catheter"], value=["Cooled catheter"], style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label("Temperature: ", htmlFor="source_cooled_temperature"),
-                         dcc.Input(id="source_cooled_temperature", type="number", debounce=True),
+                         dcc.Input(id="source_cooled_temperature", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" ^C", htmlFor="source_cooled_temperature")
                      ]),
             html.Br(),
@@ -545,30 +546,30 @@ def create_laser_settings(app_model: AppDataModel) -> object:
                          dcc.Input(id="source_delay", type="number", debounce=True,
                                    min=UINT(0),
                                    step=FLOAT(0.000001),
-                                   value=UINT(0)),
+                                   value=UINT(0), style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" s", htmlFor="source_delay"),
                          html.Div(id="source_application_of_energy",
                                   children=[
                                       html.Label("Application of energy:", htmlFor="source_application_of_energy"),
-                                      dcc.RadioItems(("Continuous wave", "Pulsed"), id="source_application_of_energy_select", value="Continuous wave"),
+                                      dcc.RadioItems(("Continuous wave", "Pulsed"), id="source_application_of_energy_select", value="Continuous wave", style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label("on: ", htmlFor="source_on_pulse"),
                                       dcc.Input(id="source_on_pulse", debounce=True, disabled=True,
                                                 min=UINT(0),
                                                 step=FLOAT(0.000001),
-                                                value=UINT(1)),
+                                                value=UINT(1), style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" s", htmlFor="source_on_pulse"),
-                                      html.Label("off: ", htmlFor="source_off_pulse"),
+                                      html.Label("off: ", htmlFor="source_off_pulse", style={'margin-left':'10px'}),
                                       dcc.Input(id="source_off_pulse", debounce=True, disabled=True,
                                                 min=UINT(0),
                                                 step=FLOAT(0.000001),
-                                                value=UINT(1)),
+                                                value=UINT(1), style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" s", htmlFor="source_off_pulse")
                                   ]),
                          html.Label("Total interval energy will be applied: ", htmlFor="source_total_interval"),
                          dcc.Input(id="source_total_interval", type="number", debounce=True, 
                                    min=UINT(0),
                                    step=FLOAT(0.000001),
-                                   value=UINT(600)),
+                                   value=UINT(600), style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" s", htmlFor="source_total_interval")
                      ]),
             html.Br(),
@@ -579,29 +580,29 @@ def create_laser_settings(app_model: AppDataModel) -> object:
                          html.Div(id="source_geometric_parameters",
                                   children=[
                                       html.Label("Diameter: ", htmlFor="source_diameter"),
-                                      dcc.Input(id="source_diameter", type="number", debounce=True),
+                                      dcc.Input(id="source_diameter", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" mm", htmlFor="source_diameter"),
-                                      html.Label("Active length: ", htmlFor="source_active_length"),
-                                      dcc.Input(id="source_active_length", type="number", debounce=True),
+                                      html.Label("Active length: ", htmlFor="source_active_length", style={'margin-left':'10px'}),
+                                      dcc.Input(id="source_active_length", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" mm", htmlFor="source_active_length"),
-                                      html.Label("Peak length: ", htmlFor="source_peak_length"),
-                                      dcc.Input(id="source_peak_length", type="number", debounce=True),
+                                      html.Label("Peak length: ", htmlFor="source_peak_length", style={'margin-left':'10px'}),
+                                      dcc.Input(id="source_peak_length", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" mm", htmlFor="source_peak_length")
                                   ]),
                          html.Label("Actual radiation parameters scattering applicator:", htmlFor="source_radiation_parameters"),
                          html.Div(id="source_radiation_parameters",
                                   children=[
                                       html.Label("Primary direction: ", htmlFor="source_primary_direction"),
-                                      dcc.Input(id="source_primary_direction", type="number", debounce=True),
+                                      dcc.Input(id="source_primary_direction", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" Deg. (air)", htmlFor="source_primary_direction"),
-                                      html.Label("Full opening angle: ", htmlFor="source_full_opening_angle"),
-                                      dcc.Input(id="source_full_opening_angle", type="number", debounce=True),
+                                      html.Label("Full opening angle: ", htmlFor="source_full_opening_angle", style={'margin-left':'10px'}),
+                                      dcc.Input(id="source_full_opening_angle", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" Deg. (air)", htmlFor="source_full_opening_angle"),
-                                      html.Label("Fiber Num. Aperture: ", htmlFor="source_fiber_num_aperture"),
-                                      dcc.Input(id="source_fiber_num_aperture", type="number", debounce=True),
-                                      html.Label(" NA (air)", htmlFor="source_fiber_num_aperture"),
+                                      html.Label("Fiber Num. Aperture: ", htmlFor="source_fiber_num_aperture", style={'margin-left':'10px'}),
+                                      dcc.Input(id="source_fiber_num_aperture", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
+                                      html.Label(" NA (air)", htmlFor="source_fiber_num_aperture", style={'margin-right':'10px'}),
                                       html.Label("Forward fraction: ", htmlFor="source_forward_fraction"),
-                                      dcc.Input(id="source_forward_fraction", type="number", debounce=True),
+                                      dcc.Input(id="source_forward_fraction", type="number", debounce=True, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                                       html.Label(" %", htmlFor="source_forward_fraction")
                                   ])
                      ]),
@@ -616,21 +617,21 @@ def create_laser_settings(app_model: AppDataModel) -> object:
                                    min=app_model.laser_ranges["position"]["min"],
                                    max=app_model.roi.get_dimension()[0],
                                    step=app_model.laser_ranges["position"]["step"],
-                                   value=app_model.default_laser.position_x),
+                                   value=app_model.default_laser.position_x, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" mm", htmlFor="add_source_x_coordinate"),
-                         html.Label("Y: ", htmlFor="add_source_y_coordinate"),
+                         html.Label("Y: ", htmlFor="add_source_y_coordinate", style={'margin-left':'10px'}),
                          dcc.Input(id="add_source_y_coordinate", type="number", debounce=True,
                                    min=app_model.laser_ranges["position"]["min"],
                                    max=app_model.roi.get_dimension()[1],
                                    step=app_model.laser_ranges["position"]["step"],
-                                   value=app_model.default_laser.position_y),
+                                   value=app_model.default_laser.position_y, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" mm", htmlFor="add_source_y_coordinate"),
-                         html.Label("Z: ", htmlFor="add_source_z_coordinate"),
+                         html.Label("Z: ", htmlFor="add_source_z_coordinate", style={'margin-left':'10px'}),
                          dcc.Input(id="add_source_z_coordinate", type="number", debounce=True,
                                    min=app_model.laser_ranges["position"]["min"],
                                    max=app_model.roi.get_dimension()[2],
                                    step=app_model.laser_ranges["position"]["step"],
-                                   value=app_model.default_laser.position_z),
+                                   value=app_model.default_laser.position_z, style={'margin':'20px 0px 20px 5px', 'padding':'0px 5px'}),
                          html.Label(" mm", htmlFor="add_source_z_coordinate"),
                          html.Br(),
                          html.Button("Add source", id="add_source", n_clicks=0)
@@ -638,6 +639,7 @@ def create_laser_settings(app_model: AppDataModel) -> object:
             html.Label("Active sources"),
             html.Br(),
             html.Div(id="sources_list", children=[])
+        ])
         ])
 
 
@@ -778,14 +780,14 @@ def add_remove_laser_source_callback(pos_x, pos_y, pos_z, add_clicks, remove_cli
                           max=app.model.roi.get_dimension()[0],
                           step=app.model.laser_ranges["position"]["step"],
                           value=pos_x),
-                html.Label("Y: ", htmlFor=f"source{app.model.lasers_counter}_y_coordinate"),
+                html.Label("Y: ", htmlFor=f"source{app.model.lasers_counter}_y_coordinate", style={'margin-left':'10px'}),
                 dcc.Input(id={"type": "source_y_coordinate", "index": int(app.model.lasers_counter)},
                           type="number", debounce=True,
                           min=app.model.laser_ranges["position"]["min"],
                           max=app.model.roi.get_dimension()[1],
                           step=app.model.laser_ranges["position"]["step"],
                           value=pos_y),
-                html.Label("Z: ", htmlFor=f"source{app.model.lasers_counter}_z_coordinate"),
+                html.Label("Z: ", htmlFor=f"source{app.model.lasers_counter}_z_coordinate", style={'margin-left':'10px'}),
                 dcc.Input(id={"type": "source_z_coordinate", "index": int(app.model.lasers_counter)},
                           type="number", debounce=True,
                           min=app.model.laser_ranges["position"]["min"],
@@ -793,7 +795,7 @@ def add_remove_laser_source_callback(pos_x, pos_y, pos_z, add_clicks, remove_cli
                           step=app.model.laser_ranges["position"]["step"],
                           value=pos_z),
                 html.Button("Remove source", id={"type": "remove_source", "index": int(app.model.lasers_counter)},
-                            n_clicks=0)
+                            n_clicks=0, style={'margin-left':'10px'})
             ]))
     elif isinstance(ctx.triggered_id, dict) and "type" in ctx.triggered_id and "index" in ctx.triggered_id and \
             ctx.triggered_id["type"] == "remove_source":

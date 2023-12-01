@@ -34,6 +34,32 @@
 .tissue_settings{
     height: 100%;
     width: 90%;
+    padding-top:10px;
+    padding-left:50px;
+    padding-right: 50px;
+    padding-bottom: 50px;
+    background-color: #001a33 !important;
+    justify-content: center;
+    margin:auto;
+    white-space: normal;
+}
+
+.roi_settings{
+    height: 100%;
+    width: 90%;
+    padding-top:50px;
+    padding-left:50px;
+    padding-right: 50px;
+    padding-bottom: 50px;
+    background-color: #001a33 !important;
+    justify-content: center;
+    margin:auto;
+    white-space: normal;
+}
+
+.laser_settings{
+    height: 100%;
+    width: 90%;
     padding-top:50px;
     padding-left:50px;
     padding-right: 50px;
@@ -47,4 +73,8 @@
 label {
     white-space: normal;
     display: inline-block;
+}
+
+.dropdown > * {
+    color: black !important;
 }

@@ -31,7 +31,16 @@ class Simulation(object):
             return
 
         # update simulation
-        self.current_temperature = np.random.rand(*self.current_temperature_array_shape)
+        x,y,z = self.current_temperature_array_shape
+        for i in range(x):
+            for j in range(y):
+                for k in range(z):
+                    value = 40-np.sqrt((i-15)**2+(j-15)**2+(k-15)**2)+np.random.randn()
+                    if value >25:
+                        self.current_temperature[i, j, k] = value
+                    else:
+                        self.current_temperature[i, j, k] = 0
+
         self.max_temperature_over_time[self.current_step] = np.max(self.current_temperature)
 
         self.current_step += 1

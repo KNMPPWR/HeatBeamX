@@ -94,12 +94,11 @@ def generate_3d_graph_figure(data: np.ndarray, plane: UINT, layer: UINT) -> obje
         z_flat = np.ones_like(x_flat) * layer
     else:  # show all data
         layer_data = data[:, :, :]
-        layer_data_flat = layer_data.flatten()
+        layer_data_flat = np.array([layer_data[:,x,:].flatten()for x in range(len(data[1,:,1]))]).flatten()
         x, y, z = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]))
         x_flat = x.flatten()
         y_flat = y.flatten()
         z_flat = z.flatten()
-
     return {
         "data": [go.Scatter3d(
             x=x_flat,
@@ -108,9 +107,9 @@ def generate_3d_graph_figure(data: np.ndarray, plane: UINT, layer: UINT) -> obje
             mode="markers",
             marker=dict(
                 symbol="square",
-                size=6,
                 color=layer_data_flat,
                 colorscale="YlOrRd",
+                size = np.minimum(layer_data_flat,12*np.ones(len(layer_data_flat))),
                 opacity=1,
             )
         )],
